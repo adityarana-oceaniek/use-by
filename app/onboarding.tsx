@@ -9,34 +9,36 @@ import {
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Clock, Shield, ShoppingCart, ArrowRight, ArrowLeft } from 'lucide-react-native';
+import { Clock, Shield, Bell, ArrowRight, ArrowLeft } from 'lucide-react-native';
+import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
+import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
 const { width } = Dimensions.get('window');
 
 const onboardingData = [
   {
     id: 1,
-    title: 'Track Everything',
-    subtitle: 'Never waste products again',
-    description: 'Monitor expiry dates for cosmetics, medicines, cleaning products, and more. Get smart reminders before items expire.',
+    title: 'Track what you use',
+    subtitle: 'before you lose it',
+    description: 'Monitor expiry dates for cosmetics, medicines, cleaning products, batteries and more. Get smart reminders before items expire.',
     icon: Clock,
-    color: '#76ABAE',
+    image: 'https://images.pexels.com/photos/3683074/pexels-photo-3683074.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 2,
-    title: 'Stay Safe & Healthy',
-    subtitle: 'Medicine reminders made simple',
-    description: 'Set up medicine schedules, track doses, and get timely reminders. Monitor your health compliance effortlessly.',
+    title: 'Smart Categories',
+    subtitle: 'Cosmetics, meds, batteries & more',
+    description: 'Organize your household items by type. Track skincare routines, medicine schedules, and battery replacements all in one place.',
     icon: Shield,
-    color: '#76ABAE',
+    image: 'https://images.pexels.com/photos/3685530/pexels-photo-3685530.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 3,
-    title: 'Smart Reordering',
-    subtitle: 'Seamless shopping integration',
-    description: 'Automatically create shopping lists and connect with Blinkit, Instamart for instant reordering of expired items.',
-    icon: ShoppingCart,
-    color: '#76ABAE',
+    title: 'Stay Notified',
+    subtitle: 'Never miss important reminders',
+    description: 'Get timely notifications for expiring items, medicine doses, and reorder suggestions. Stay on top of your household needs.',
+    icon: Bell,
+    image: 'https://images.pexels.com/photos/4239091/pexels-photo-4239091.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 ];
 
@@ -44,6 +46,8 @@ export default function Onboarding() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const router = useRouter();
+  const colors = useThemeColors();
+  const colorScheme = useColorScheme();
 
   const handleNext = () => {
     if (currentIndex < onboardingData.length - 1) {
@@ -71,7 +75,7 @@ export default function Onboarding() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -82,16 +86,17 @@ export default function Onboarding() {
       >
         {onboardingData.map((item, index) => (
           <View key={item.id} style={styles.slide}>
-            <View style={styles.iconContainer}>
-              <View style={[styles.iconBackground, { backgroundColor: item.color + '20' }]}>
-                <item.icon size={64} color={item.color} strokeWidth={1.5} />
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: item.image }} style={styles.heroImage} />
+              <View style={[styles.iconOverlay, { backgroundColor: colors.primary + '20' }]}>
+                <item.icon size={48} color={colors.primary} strokeWidth={1.5} />
               </View>
             </View>
             
             <View style={styles.textContainer}>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.subtitle}>{item.subtitle}</Text>
-              <Text style={styles.description}>{item.description}</Text>
+              <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
+              <Text style={[styles.subtitle, { color: colors.primary }]}>{item.subtitle}</Text>
+              <Text style={[styles.description, { color: colors.textMuted }]}>{item.description}</Text>
             </View>
           </View>
         ))}
@@ -104,7 +109,9 @@ export default function Onboarding() {
               key={index}
               style={[
                 styles.dot,
-                index === currentIndex ? styles.activeDot : styles.inactiveDot,
+                index === currentIndex 
+                  ? [styles.activeDot, { backgroundColor: colors.primary }]
+                  : [styles.inactiveDot, { backgroundColor: colors.border }],
               ]}
             />
           ))}
@@ -113,16 +120,23 @@ export default function Onboarding() {
         <View style={styles.buttonContainer}>
           {currentIndex > 0 && (
             <TouchableOpacity style={styles.backButton} onPress={handlePrevious}>
-              <ArrowLeft size={20} color="#76ABAE" />
-              <Text style={styles.backButtonText}>Back</Text>
+              <ArrowLeft size={20} color={colors.primary} />
+              <Text style={[styles.backButtonText, { color: colors.primary }]}>Back</Text>
             </TouchableOpacity>
           )}
           
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextButtonText}>
+          <TouchableOpacity 
+            style={[
+              styles.nextButton, 
+              { backgroundColor: colors.primary },
+              colorScheme === 'light' ? Shadows.light : Shadows.dark
+            ]} 
+            onPress={handleNext}
+          >
+            <Text style={[styles.nextButtonText, { color: colorScheme === 'light' ? colors.surface : colors.background }]}>
               {currentIndex === onboardingData.length - 1 ? 'Get Started' : 'Next'}
             </Text>
-            <ArrowRight size={20} color="#FFFFFF" />
+            <ArrowRight size={20} color={colorScheme === 'light' ? colors.surface : colors.background} />
           </TouchableOpacity>
         </View>
       </View>
@@ -133,7 +147,6 @@ export default function Onboarding() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#222831',
   },
   scrollView: {
     flex: 1,
@@ -141,105 +154,107 @@ const styles = StyleSheet.create({
   slide: {
     width,
     flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 80,
+    paddingHorizontal: Spacing.xxl,
+    paddingTop: 60,
     alignItems: 'center',
   },
-  iconContainer: {
-    flex: 0.4,
+  imageContainer: {
+    flex: 0.5,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+    width: '100%',
   },
-  iconBackground: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  heroImage: {
+    width: 280,
+    height: 280,
+    borderRadius: BorderRadius.xl,
+    opacity: 0.8,
+  },
+  iconOverlay: {
+    position: 'absolute',
+    bottom: -20,
+    right: 20,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
   textContainer: {
-    flex: 0.6,
+    flex: 0.5,
     alignItems: 'center',
     paddingTop: 40,
+    paddingHorizontal: Spacing.lg,
   },
   title: {
+    ...Typography.title,
     fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#EEEEEE',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   subtitle: {
+    ...Typography.subtitle,
     fontSize: 18,
-    fontFamily: 'Inter-Medium',
-    color: '#76ABAE',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: Spacing.xl,
   },
   description: {
+    ...Typography.body,
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
     textAlign: 'center',
     lineHeight: 24,
-    opacity: 0.8,
   },
   footer: {
-    paddingHorizontal: 32,
+    paddingHorizontal: Spacing.xxl,
     paddingBottom: 48,
-    paddingTop: 24,
+    paddingTop: Spacing.xl,
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: Spacing.xxl,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
+    width: Spacing.sm,
+    height: Spacing.sm,
+    borderRadius: Spacing.xs,
+    marginHorizontal: Spacing.xs,
   },
   activeDot: {
-    backgroundColor: '#76ABAE',
     width: 24,
-  },
-  inactiveDot: {
-    backgroundColor: '#31363F',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    minHeight: 56,
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
+    minHeight: 44,
   },
   backButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#76ABAE',
-    marginLeft: 8,
+    ...Typography.subtitle,
+    marginLeft: Spacing.sm,
   },
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#76ABAE',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xxl,
+    borderRadius: BorderRadius.md,
     flex: 1,
-    marginLeft: 16,
+    marginLeft: Spacing.lg,
     justifyContent: 'center',
+    minHeight: 56,
   },
   nextButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
-    marginRight: 8,
+    ...Typography.subtitle,
+    marginRight: Spacing.sm,
   },
 });

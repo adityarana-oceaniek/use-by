@@ -6,8 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Switch,
+  Alert,
 } from 'react-native';
-import { Plus, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Calendar } from 'lucide-react-native';
+import { Plus, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Calendar, Pill, SunSnow as Snooze } from 'lucide-react-native';
+import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
+import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
 const mockMedicines = [
   {
@@ -19,6 +23,7 @@ const mockMedicines = [
     taken: [true],
     instructions: 'Take with food',
     nextDose: '09:00',
+    condition: 'with_food',
   },
   {
     id: 2,
@@ -29,6 +34,7 @@ const mockMedicines = [
     taken: [true, false],
     instructions: 'Take with meals',
     nextDose: '20:00',
+    condition: 'with_food',
   },
   {
     id: 3,
@@ -39,66 +45,146 @@ const mockMedicines = [
     taken: [false],
     instructions: 'Take on empty stomach',
     nextDose: '08:30',
+    condition: 'empty_stomach',
   },
 ];
 
 const todaySchedule = [
-  { time: '08:00', medicine: 'Omega-3', taken: true },
-  { time: '08:30', medicine: 'Multivitamin', taken: false },
-  { time: '09:00', medicine: 'Vitamin D3', taken: true },
-  { time: '20:00', medicine: 'Omega-3', taken: false },
+  { id: 1, time: '08:00', medicine: 'Omega-3', dosage: '500mg', taken: true, condition: 'with_food' },
+  { id: 2, time: '08:30', medicine: 'Multivitamin', dosage: '1 tablet', taken: false, condition: 'empty_stomach' },
+  { id: 3, time: '09:00', medicine: 'Vitamin D3', dosage: '1000 IU', taken: true, condition: 'with_food' },
+  { id: 4, time: '20:00', medicine: 'Omega-3', dosage: '500mg', taken: false, condition: 'with_food' },
 ];
+
+const tabs = ['Today', 'My Medicines', 'Calendar'];
 
 export default function Medicine() {
   const [activeTab, setActiveTab] = useState(0);
-  const tabs = ['Today', 'My Medicines', 'Calendar'];
+  const [reminderEnabled, setReminderEnabled] = useState(true);
+  const [schedule, setSchedule] = useState(todaySchedule);
+  const colors = useThemeColors();
+  const colorScheme = useColorScheme();
+
+  const getConditionIcon = (condition: string) => {
+    return condition === 'with_food' ? '🍽️' : '⏰';
+  };
+
+  const getConditionText = (condition: string) => {
+    return condition === 'with_food' ? 'With food' : 'Empty stomach';
+  };
+
+  const handleTakeMedicine = (scheduleId: number) => {
+    setSchedule(prev => prev.map(item => 
+      item.id === scheduleId ? { ...item, taken: true } : item
+    ));
+    Alert.alert('Medicine Taken', 'Dose recorded successfully');
+  };
+
+  const handleSnoozeMedicine = (scheduleId: number) => {
+    Alert.alert('Snoozed', 'Reminder snoozed for 15 minutes');
+  };
+
+  const handleMissedMedicine = (scheduleId: number) => {
+    Alert.alert('Missed Dose', 'Dose marked as missed');
+  };
 
   const renderTodayView = () => (
     <View style={styles.todayContainer}>
-      <View style={styles.progressCard}>
-        <Text style={styles.progressTitle}>Today's Progress</Text>
+      <View style={[
+        styles.progressCard, 
+        { backgroundColor: colors.surface },
+        colorScheme === 'light' ? Shadows.light : Shadows.dark
+      ]}>
+        <Text style={[styles.progressTitle, { color: colors.text }]}>Today's Progress</Text>
         <View style={styles.progressStats}>
           <View style={styles.progressItem}>
-            <Text style={styles.progressNumber}>2</Text>
-            <Text style={styles.progressLabel}>Taken</Text>
+            <Text style={[styles.progressNumber, { color: colors.success }]}>2</Text>
+            <Text style={[styles.progressLabel, { color: colors.textMuted }]}>Taken</Text>
           </View>
-          <View style={styles.progressDivider} />
+          <View style={[styles.progressDivider, { backgroundColor: colors.border }]} />
           <View style={styles.progressItem}>
-            <Text style={styles.progressNumber}>2</Text>
-            <Text style={styles.progressLabel}>Remaining</Text>
+            <Text style={[styles.progressNumber, { color: colors.warning }]}>2</Text>
+            <Text style={[styles.progressLabel, { color: colors.textMuted }]}>Remaining</Text>
           </View>
-          <View style={styles.progressDivider} />
+          <View style={[styles.progressDivider, { backgroundColor: colors.border }]} />
           <View style={styles.progressItem}>
-            <Text style={styles.progressNumber}>50%</Text>
-            <Text style={styles.progressLabel}>Compliance</Text>
+            <Text style={[styles.progressNumber, { color: colors.primary }]}>50%</Text>
+            <Text style={[styles.progressLabel, { color: colors.textMuted }]}>Compliance</Text>
           </View>
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Today's Schedule</Text>
-      {todaySchedule.map((item, index) => (
-        <TouchableOpacity key={index} style={styles.scheduleItem}>
+      <View style={styles.reminderToggle}>
+        <View>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Reminders</Text>
+          <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>
+            Get notified for medicine doses
+          </Text>
+        </View>
+        <Switch
+          value={reminderEnabled}
+          onValueChange={setReminderEnabled}
+          trackColor={{ false: colors.border, true: colors.primary + '40' }}
+          thumbColor={reminderEnabled ? colors.primary : colors.textMuted}
+        />
+      </View>
+
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Schedule</Text>
+      {schedule.map((item) => (
+        <View 
+          key={item.id} 
+          style={[
+            styles.scheduleItem, 
+            { backgroundColor: colors.surface },
+            colorScheme === 'light' ? Shadows.light : Shadows.dark
+          ]}
+        >
           <View style={styles.scheduleTime}>
-            <Text style={styles.timeText}>{item.time}</Text>
+            <Text style={[styles.timeText, { color: colors.primary }]}>{item.time}</Text>
+            <Text style={styles.conditionIcon}>{getConditionIcon(item.condition)}</Text>
           </View>
           
           <View style={styles.scheduleInfo}>
-            <Text style={styles.medicineName}>{item.medicine}</Text>
-            <Text style={styles.medicineStatus}>
-              {item.taken ? 'Taken' : 'Pending'}
+            <Text style={[styles.medicineName, { color: colors.text }]}>{item.medicine}</Text>
+            <Text style={[styles.medicineDosage, { color: colors.textMuted }]}>{item.dosage}</Text>
+            <Text style={[styles.conditionText, { color: colors.textMuted }]}>
+              {getConditionText(item.condition)}
             </Text>
           </View>
 
-          <View style={styles.scheduleAction}>
+          <View style={styles.scheduleActions}>
             {item.taken ? (
-              <CheckCircle size={24} color="#4CAF50" />
+              <View style={styles.takenIndicator}>
+                <CheckCircle size={24} color={colors.success} />
+                <Text style={[styles.takenText, { color: colors.success }]}>Taken</Text>
+              </View>
             ) : (
-              <TouchableOpacity style={styles.takeButton}>
-                <Text style={styles.takeButtonText}>Take</Text>
-              </TouchableOpacity>
+              <View style={styles.actionButtons}>
+                <TouchableOpacity 
+                  style={[styles.actionButton, { backgroundColor: colors.warning + '20' }]}
+                  onPress={() => handleSnoozeMedicine(item.id)}
+                >
+                  <Snooze size={16} color={colors.warning} />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.actionButton, { backgroundColor: colors.error + '20' }]}
+                  onPress={() => handleMissedMedicine(item.id)}
+                >
+                  <AlertCircle size={16} color={colors.error} />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.takeButton, { backgroundColor: colors.success }]}
+                  onPress={() => handleTakeMedicine(item.id)}
+                >
+                  <CheckCircle size={16} color={colors.surface} />
+                  <Text style={[styles.takeButtonText, { color: colors.surface }]}>Take</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
-        </TouchableOpacity>
+        </View>
       ))}
     </View>
   );
@@ -106,22 +192,32 @@ export default function Medicine() {
   const renderMedicinesView = () => (
     <View style={styles.medicinesContainer}>
       {mockMedicines.map((medicine) => (
-        <TouchableOpacity key={medicine.id} style={styles.medicineCard}>
+        <TouchableOpacity 
+          key={medicine.id} 
+          style={[
+            styles.medicineCard, 
+            { backgroundColor: colors.surface },
+            colorScheme === 'light' ? Shadows.light : Shadows.dark
+          ]}
+        >
           <View style={styles.medicineHeader}>
-            <View>
-              <Text style={styles.medicineName}>{medicine.name}</Text>
-              <Text style={styles.medicineDosage}>{medicine.dosage}</Text>
+            <View style={[styles.medicineIcon, { backgroundColor: colors.primary + '20' }]}>
+              <Pill size={24} color={colors.primary} />
+            </View>
+            <View style={styles.medicineInfo}>
+              <Text style={[styles.medicineName, { color: colors.text }]}>{medicine.name}</Text>
+              <Text style={[styles.medicineDosage, { color: colors.textMuted }]}>{medicine.dosage}</Text>
             </View>
             <View style={styles.medicineStatus}>
-              <Text style={styles.frequencyText}>{medicine.frequency}</Text>
+              <Text style={[styles.frequencyText, { color: colors.primary }]}>{medicine.frequency}</Text>
             </View>
           </View>
 
           <View style={styles.medicineDetails}>
-            <Text style={styles.instructionsText}>{medicine.instructions}</Text>
+            <Text style={[styles.instructionsText, { color: colors.textMuted }]}>{medicine.instructions}</Text>
             <View style={styles.nextDoseContainer}>
-              <Clock size={16} color="#76ABAE" />
-              <Text style={styles.nextDoseText}>Next: {medicine.nextDose}</Text>
+              <Clock size={16} color={colors.primary} />
+              <Text style={[styles.nextDoseText, { color: colors.primary }]}>Next: {medicine.nextDose}</Text>
             </View>
           </View>
 
@@ -131,59 +227,87 @@ export default function Medicine() {
                 key={index}
                 style={[
                   styles.doseTime,
-                  medicine.taken[index] && styles.takenDose
+                  { backgroundColor: colors.background },
+                  medicine.taken[index] && { backgroundColor: colors.success + '20' }
                 ]}
               >
                 <Text style={[
                   styles.doseTimeText,
-                  medicine.taken[index] && styles.takenDoseText
+                  { color: colors.textMuted },
+                  medicine.taken[index] && { color: colors.success, fontFamily: 'Inter-SemiBold' }
                 ]}>
                   {time}
                 </Text>
+                {medicine.taken[index] && (
+                  <CheckCircle size={12} color={colors.success} style={{ marginLeft: 4 }} />
+                )}
               </View>
             ))}
           </View>
         </TouchableOpacity>
       ))}
+
+      <TouchableOpacity 
+        style={[
+          styles.addMedicineButton, 
+          { backgroundColor: colors.primary },
+          colorScheme === 'light' ? Shadows.light : {}
+        ]}
+        onPress={() => Alert.alert('Add Medicine', 'Medicine setup form would open here')}
+      >
+        <Plus size={20} color={colors.surface} />
+        <Text style={[styles.addMedicineText, { color: colors.surface }]}>Add New Medicine</Text>
+      </TouchableOpacity>
     </View>
   );
 
   const renderCalendarView = () => (
     <View style={styles.calendarContainer}>
-      <View style={styles.weeklyStats}>
-        <Text style={styles.statsTitle}>This Week</Text>
+      <View style={[
+        styles.weeklyStats, 
+        { backgroundColor: colors.surface },
+        colorScheme === 'light' ? Shadows.light : Shadows.dark
+      ]}>
+        <Text style={[styles.statsTitle, { color: colors.text }]}>This Week</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>93%</Text>
-            <Text style={styles.statLabel}>Compliance</Text>
+            <Text style={[styles.statNumber, { color: colors.success }]}>93%</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]}>Compliance</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>26</Text>
-            <Text style={styles.statLabel}>Doses Taken</Text>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>26</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]}>Doses Taken</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>2</Text>
-            <Text style={styles.statLabel}>Missed</Text>
+            <Text style={[styles.statNumber, { color: colors.error }]}>2</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]}>Missed</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>7</Text>
-            <Text style={styles.statLabel}>Days</Text>
+            <Text style={[styles.statNumber, { color: colors.warning }]}>7</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]}>Days</Text>
           </View>
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Recent Activity</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
       <View style={styles.activityList}>
         {[
-          { date: 'Today', compliance: 50, color: '#FF9800' },
-          { date: 'Yesterday', compliance: 100, color: '#4CAF50' },
-          { date: 'Jan 20', compliance: 75, color: '#76ABAE' },
-          { date: 'Jan 19', compliance: 100, color: '#4CAF50' },
-          { date: 'Jan 18', compliance: 50, color: '#FF9800' },
+          { date: 'Today', compliance: 50, color: colors.warning },
+          { date: 'Yesterday', compliance: 100, color: colors.success },
+          { date: 'Jan 20', compliance: 75, color: colors.primary },
+          { date: 'Jan 19', compliance: 100, color: colors.success },
+          { date: 'Jan 18', compliance: 50, color: colors.warning },
         ].map((day, index) => (
-          <View key={index} style={styles.activityItem}>
-            <Text style={styles.activityDate}>{day.date}</Text>
-            <View style={styles.complianceBar}>
+          <TouchableOpacity 
+            key={index} 
+            style={[
+              styles.activityItem, 
+              { backgroundColor: colors.surface },
+              colorScheme === 'light' ? Shadows.light : Shadows.dark
+            ]}
+          >
+            <Text style={[styles.activityDate, { color: colors.text }]}>{day.date}</Text>
+            <View style={[styles.complianceBar, { backgroundColor: colors.border }]}>
               <View
                 style={[
                   styles.complianceFill,
@@ -191,19 +315,26 @@ export default function Medicine() {
                 ]}
               />
             </View>
-            <Text style={styles.complianceText}>{day.compliance}%</Text>
-          </View>
+            <Text style={[styles.complianceText, { color: colors.primary }]}>{day.compliance}%</Text>
+          </TouchableOpacity>
         ))}
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Medicine Tracker</Text>
-        <TouchableOpacity style={styles.addButton}>
-          <Plus size={24} color="#76ABAE" />
+        <Text style={[styles.title, { color: colors.text }]}>Medicine Tracker</Text>
+        <TouchableOpacity 
+          style={[
+            styles.addButton, 
+            { backgroundColor: colors.surface },
+            colorScheme === 'light' ? Shadows.light : Shadows.dark
+          ]}
+          onPress={() => Alert.alert('Add Medicine', 'Medicine setup form would open here')}
+        >
+          <Plus size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -211,10 +342,20 @@ export default function Medicine() {
         {tabs.map((tab, index) => (
           <TouchableOpacity
             key={index}
-            style={[styles.tab, activeTab === index && styles.activeTab]}
+            style={[
+              styles.tab,
+              activeTab === index && [
+                styles.activeTab,
+                { backgroundColor: colors.primary },
+                colorScheme === 'light' ? Shadows.light : {}
+              ]
+            ]}
             onPress={() => setActiveTab(index)}
           >
-            <Text style={[styles.tabText, activeTab === index && styles.activeTabText]}>
+            <Text style={[
+              styles.tabText,
+              { color: activeTab === index ? colors.surface : colors.textMuted }
+            ]}>
               {tab}
             </Text>
           </TouchableOpacity>
@@ -233,24 +374,21 @@ export default function Medicine() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#222831',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
   },
   title: {
+    ...Typography.title,
     fontSize: 28,
-    fontFamily: 'Inter-Bold',
-    color: '#EEEEEE',
   },
   addButton: {
-    backgroundColor: '#31363F',
-    borderRadius: 12,
+    borderRadius: BorderRadius.md,
     width: 48,
     height: 48,
     justifyContent: 'center',
@@ -258,48 +396,41 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
-    marginBottom: 24,
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginHorizontal: 4,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    marginHorizontal: Spacing.xs,
     alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
   },
-  activeTab: {
-    backgroundColor: '#76ABAE',
-  },
+  activeTab: {},
   tabText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#EEEEEE',
-    opacity: 0.7,
-  },
-  activeTabText: {
-    color: '#FFFFFF',
-    opacity: 1,
+    ...Typography.caption,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 13,
+    textAlign: 'center',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: Spacing.lg,
   },
   todayContainer: {
-    paddingBottom: 32,
+    paddingBottom: Spacing.xxl,
   },
   progressCard: {
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 24,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   progressTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#EEEEEE',
-    marginBottom: 16,
+    ...Typography.subtitle,
+    marginBottom: Spacing.lg,
   },
   progressStats: {
     flexDirection: 'row',
@@ -310,161 +441,189 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   progressNumber: {
+    ...Typography.title,
     fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#76ABAE',
   },
   progressLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
-    opacity: 0.7,
-    marginTop: 4,
+    ...Typography.caption,
+    marginTop: Spacing.xs,
   },
   progressDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#222831',
-    marginHorizontal: 16,
+    marginHorizontal: Spacing.lg,
+  },
+  reminderToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+    paddingVertical: Spacing.md,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: '#EEEEEE',
-    marginBottom: 16,
+    ...Typography.subtitle,
+    marginBottom: Spacing.lg,
+  },
+  sectionSubtitle: {
+    ...Typography.caption,
+    marginTop: Spacing.xs,
   },
   scheduleItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   scheduleTime: {
-    marginRight: 16,
+    alignItems: 'center',
+    marginRight: Spacing.lg,
+    minWidth: 60,
   },
   timeText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#76ABAE',
+    ...Typography.subtitle,
+  },
+  conditionIcon: {
+    fontSize: 12,
+    marginTop: Spacing.xs,
   },
   scheduleInfo: {
     flex: 1,
   },
   medicineName: {
-    fontSize: 16,
+    ...Typography.subtitle,
+  },
+  medicineDosage: {
+    ...Typography.caption,
+    marginTop: Spacing.xs,
+  },
+  conditionText: {
+    ...Typography.caption,
+    marginTop: Spacing.xs,
+  },
+  scheduleActions: {
+    marginLeft: Spacing.lg,
+  },
+  takenIndicator: {
+    alignItems: 'center',
+  },
+  takenText: {
+    ...Typography.caption,
+    marginTop: Spacing.xs,
     fontFamily: 'Inter-SemiBold',
-    color: '#EEEEEE',
   },
-  medicineStatus: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
-    opacity: 0.6,
-    marginTop: 2,
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  scheduleAction: {
-    marginLeft: 16,
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
   },
   takeButton: {
-    backgroundColor: '#76ABAE',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    minHeight: 36,
   },
   takeButtonText: {
-    fontSize: 14,
+    ...Typography.caption,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    marginLeft: Spacing.xs,
   },
   medicinesContainer: {
-    paddingBottom: 32,
+    paddingBottom: Spacing.xxl,
   },
   medicineCard: {
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   medicineHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: Spacing.md,
   },
-  medicineDosage: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
-    opacity: 0.6,
-    marginTop: 2,
+  medicineIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  medicineInfo: {
+    flex: 1,
   },
   medicineStatus: {
     alignItems: 'flex-end',
   },
   frequencyText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#76ABAE',
+    ...Typography.caption,
+    fontFamily: 'Inter-SemiBold',
   },
   medicineDetails: {
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
   },
   instructionsText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
-    opacity: 0.7,
-    marginBottom: 8,
+    ...Typography.body,
+    marginBottom: Spacing.sm,
   },
   nextDoseContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   nextDoseText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#76ABAE',
-    marginLeft: 6,
+    ...Typography.caption,
+    fontFamily: 'Inter-SemiBold',
+    marginLeft: Spacing.sm,
   },
   doseTimes: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   doseTime: {
-    backgroundColor: '#222831',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 8,
-  },
-  takenDose: {
-    backgroundColor: '#4CAF50',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginRight: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
   doseTimeText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#EEEEEE',
-    opacity: 0.7,
+    ...Typography.caption,
   },
-  takenDoseText: {
-    color: '#FFFFFF',
-    opacity: 1,
+  addMedicineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.lg,
+    marginTop: Spacing.lg,
+    minHeight: 56,
+  },
+  addMedicineText: {
+    ...Typography.subtitle,
+    marginLeft: Spacing.sm,
   },
   calendarContainer: {
-    paddingBottom: 32,
+    paddingBottom: Spacing.xxl,
   },
   weeklyStats: {
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 24,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   statsTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#EEEEEE',
-    marginBottom: 16,
+    ...Typography.subtitle,
+    marginBottom: Spacing.lg,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -473,43 +632,36 @@ const styles = StyleSheet.create({
   statItem: {
     width: '50%',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
   },
   statNumber: {
+    ...Typography.title,
     fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#76ABAE',
   },
   statLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
-    opacity: 0.7,
-    marginTop: 4,
+    ...Typography.caption,
+    marginTop: Spacing.xs,
   },
   activityList: {
-    marginTop: 8,
+    marginTop: Spacing.sm,
   },
   activityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   activityDate: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#EEEEEE',
+    ...Typography.body,
+    fontFamily: 'Inter-SemiBold',
     width: 80,
   },
   complianceBar: {
     flex: 1,
     height: 8,
-    backgroundColor: '#222831',
     borderRadius: 4,
-    marginHorizontal: 16,
+    marginHorizontal: Spacing.lg,
     overflow: 'hidden',
   },
   complianceFill: {
@@ -517,9 +669,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   complianceText: {
-    fontSize: 14,
+    ...Typography.body,
     fontFamily: 'Inter-SemiBold',
-    color: '#76ABAE',
     width: 40,
     textAlign: 'right',
   },

@@ -1,20 +1,28 @@
 import { Tabs } from 'expo-router';
-import { Chrome as Home, Plus, Calendar, Settings, ShoppingBag } from 'lucide-react-native';
+import { Chrome as Home, Pill, ShoppingBag, Bell, Settings } from 'lucide-react-native';
+import { useThemeColors } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
+  const colors = useThemeColors();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#31363F',
+          backgroundColor: colors.surface,
           borderTopWidth: 0,
           height: 88,
           paddingBottom: 24,
           paddingTop: 8,
+          shadowColor: colors.shadow,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 8,
         },
-        tabBarActiveTintColor: '#76ABAE',
-        tabBarInactiveTintColor: '#EEEEEE',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: {
           fontSize: 12,
           fontFamily: 'Inter-Medium',
@@ -32,20 +40,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="add"
-        options={{
-          title: 'Add',
-          tabBarIcon: ({ size, color }) => (
-            <Plus size={size} color={color} strokeWidth={2} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="medicine"
         options={{
           title: 'Medicine',
           tabBarIcon: ({ size, color }) => (
-            <Calendar size={size} color={color} strokeWidth={2} />
+            <Pill size={size} color={color} strokeWidth={2} />
           ),
         }}
       />
@@ -55,6 +54,15 @@ export default function TabLayout() {
           title: 'Shopping',
           tabBarIcon: ({ size, color }) => (
             <ShoppingBag size={size} color={color} strokeWidth={2} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: 'Notifications',
+          tabBarIcon: ({ size, color }) => (
+            <Bell size={size} color={color} strokeWidth={2} />
           ),
         }}
       />
