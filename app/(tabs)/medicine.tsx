@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   Switch,
 } from 'react-native';
-import { Plus, Clock, CheckCircle, AlertCircle, Calendar, Pill } from 'lucide-react-native';
+import { Plus, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Calendar, Pill } from 'lucide-react-native';
 import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
 import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 

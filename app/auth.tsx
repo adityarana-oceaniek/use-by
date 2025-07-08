@@ -10,7 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Mail, Lock, Eye, EyeOff, User, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, User, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
 import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 

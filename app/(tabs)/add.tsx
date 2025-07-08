@@ -10,7 +10,7 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import { Camera, Search, Calendar, Tag, Package, CheckCircle } from 'lucide-react-native';
+import { Camera, Search, Calendar, Tag, Package, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
 import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 

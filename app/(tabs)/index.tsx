@@ -8,7 +8,7 @@ import {
   Image,
   SafeAreaView,
 } from 'react-native';
-import { Search, Filter, Bell, Edit, Eye } from 'lucide-react-native';
+import { Search, Filter, Bell, CreditCard as Edit, Eye } from 'lucide-react-native';
 import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
 import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 

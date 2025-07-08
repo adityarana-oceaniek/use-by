@@ -9,22 +9,7 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import { 
-  User, 
-  Bell, 
-  Moon, 
-  Shield, 
-  Download, 
-  Upload, 
-  Users, 
-  HelpCircle, 
-  LogOut, 
-  ChevronRight,
-  Volume2,
-  Vibrate,
-  Cloud,
-  Info
-} from 'lucide-react-native';
+import { User, Bell, Moon, Shield, Download, Upload, Users, CircleHelp as HelpCircle, LogOut, ChevronRight, Volume2, Vibrate, Cloud, Info } from 'lucide-react-native';
 import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
 import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
