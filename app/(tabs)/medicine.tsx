@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Switch,
+  Alert,
 } from 'react-native';
-import { Plus, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Calendar, Pill } from 'lucide-react-native';
+import { Plus, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Calendar, Pill, Snooze } from 'lucide-react-native';
 import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
 import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
@@ -49,10 +50,10 @@ const mockMedicines = [
 ];
 
 const todaySchedule = [
-  { time: '08:00', medicine: 'Omega-3', taken: true, condition: 'with_food' },
-  { time: '08:30', medicine: 'Multivitamin', taken: false, condition: 'empty_stomach' },
-  { time: '09:00', medicine: 'Vitamin D3', taken: true, condition: 'with_food' },
-  { time: '20:00', medicine: 'Omega-3', taken: false, condition: 'with_food' },
+  { id: 1, time: '08:00', medicine: 'Omega-3', dosage: '500mg', taken: true, condition: 'with_food' },
+  { id: 2, time: '08:30', medicine: 'Multivitamin', dosage: '1 tablet', taken: false, condition: 'empty_stomach' },
+  { id: 3, time: '09:00', medicine: 'Vitamin D3', dosage: '1000 IU', taken: true, condition: 'with_food' },
+  { id: 4, time: '20:00', medicine: 'Omega-3', dosage: '500mg', taken: false, condition: 'with_food' },
 ];
 
 const tabs = ['Today', 'My Medicines', 'Calendar'];
@@ -60,6 +61,7 @@ const tabs = ['Today', 'My Medicines', 'Calendar'];
 export default function Medicine() {
   const [activeTab, setActiveTab] = useState(0);
   const [reminderEnabled, setReminderEnabled] = useState(true);
+  const [schedule, setSchedule] = useState(todaySchedule);
   const colors = useThemeColors();
   const colorScheme = useColorScheme();
 
@@ -67,10 +69,23 @@ export default function Medicine() {
     return condition === 'with_food' ? '🍽️' : '⏰';
   };
 
-  const getStatusColor = (taken: boolean, isPending: boolean = false) => {
-    if (taken) return colors.success;
-    if (isPending) return colors.warning;
-    return colors.error;
+  const getConditionText = (condition: string) => {
+    return condition === 'with_food' ? 'With food' : 'Empty stomach';
+  };
+
+  const handleTakeMedicine = (scheduleId: number) => {
+    setSchedule(prev => prev.map(item => 
+      item.id === scheduleId ? { ...item, taken: true } : item
+    ));
+    Alert.alert('Medicine Taken', 'Dose recorded successfully');
+  };
+
+  const handleSnoozeMedicine = (scheduleId: number) => {
+    Alert.alert('Snoozed', 'Reminder snoozed for 15 minutes');
+  };
+
+  const handleMissedMedicine = (scheduleId: number) => {
+    Alert.alert('Missed Dose', 'Dose marked as missed');
   };
 
   const renderTodayView = () => (
@@ -100,7 +115,12 @@ export default function Medicine() {
       </View>
 
       <View style={styles.reminderToggle}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Reminders</Text>
+        <View>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Reminders</Text>
+          <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>
+            Get notified for medicine doses
+          </Text>
+        </View>
         <Switch
           value={reminderEnabled}
           onValueChange={setReminderEnabled}
@@ -110,9 +130,9 @@ export default function Medicine() {
       </View>
 
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Schedule</Text>
-      {todaySchedule.map((item, index) => (
-        <TouchableOpacity 
-          key={index} 
+      {schedule.map((item) => (
+        <View 
+          key={item.id} 
           style={[
             styles.scheduleItem, 
             { backgroundColor: colors.surface },
@@ -126,23 +146,45 @@ export default function Medicine() {
           
           <View style={styles.scheduleInfo}>
             <Text style={[styles.medicineName, { color: colors.text }]}>{item.medicine}</Text>
-            <Text style={[styles.medicineStatus, { color: colors.textMuted }]}>
-              {item.taken ? 'Taken' : 'Pending'}
+            <Text style={[styles.medicineDosage, { color: colors.textMuted }]}>{item.dosage}</Text>
+            <Text style={[styles.conditionText, { color: colors.textMuted }]}>
+              {getConditionText(item.condition)}
             </Text>
           </View>
 
-          <View style={styles.scheduleAction}>
+          <View style={styles.scheduleActions}>
             {item.taken ? (
-              <CheckCircle size={24} color={colors.success} />
+              <View style={styles.takenIndicator}>
+                <CheckCircle size={24} color={colors.success} />
+                <Text style={[styles.takenText, { color: colors.success }]}>Taken</Text>
+              </View>
             ) : (
-              <TouchableOpacity style={[styles.takeButton, { backgroundColor: colors.primary }]}>
-                <Text style={[styles.takeButtonText, { color: colorScheme === 'light' ? colors.surface : colors.background }]}>
-                  Take
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.actionButtons}>
+                <TouchableOpacity 
+                  style={[styles.actionButton, { backgroundColor: colors.warning + '20' }]}
+                  onPress={() => handleSnoozeMedicine(item.id)}
+                >
+                  <Snooze size={16} color={colors.warning} />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.actionButton, { backgroundColor: colors.error + '20' }]}
+                  onPress={() => handleMissedMedicine(item.id)}
+                >
+                  <AlertCircle size={16} color={colors.error} />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.takeButton, { backgroundColor: colors.success }]}
+                  onPress={() => handleTakeMedicine(item.id)}
+                >
+                  <CheckCircle size={16} color={colors.surface} />
+                  <Text style={[styles.takeButtonText, { color: colors.surface }]}>Take</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
-        </TouchableOpacity>
+        </View>
       ))}
     </View>
   );
@@ -159,7 +201,7 @@ export default function Medicine() {
           ]}
         >
           <View style={styles.medicineHeader}>
-            <View style={styles.medicineIcon}>
+            <View style={[styles.medicineIcon, { backgroundColor: colors.primary + '20' }]}>
               <Pill size={24} color={colors.primary} />
             </View>
             <View style={styles.medicineInfo}>
@@ -196,11 +238,26 @@ export default function Medicine() {
                 ]}>
                   {time}
                 </Text>
+                {medicine.taken[index] && (
+                  <CheckCircle size={12} color={colors.success} style={{ marginLeft: 4 }} />
+                )}
               </View>
             ))}
           </View>
         </TouchableOpacity>
       ))}
+
+      <TouchableOpacity 
+        style={[
+          styles.addMedicineButton, 
+          { backgroundColor: colors.primary },
+          colorScheme === 'light' ? Shadows.light : {}
+        ]}
+        onPress={() => Alert.alert('Add Medicine', 'Medicine setup form would open here')}
+      >
+        <Plus size={20} color={colors.surface} />
+        <Text style={[styles.addMedicineText, { color: colors.surface }]}>Add New Medicine</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -241,7 +298,7 @@ export default function Medicine() {
           { date: 'Jan 19', compliance: 100, color: colors.success },
           { date: 'Jan 18', compliance: 50, color: colors.warning },
         ].map((day, index) => (
-          <View 
+          <TouchableOpacity 
             key={index} 
             style={[
               styles.activityItem, 
@@ -259,7 +316,7 @@ export default function Medicine() {
               />
             </View>
             <Text style={[styles.complianceText, { color: colors.primary }]}>{day.compliance}%</Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
     </View>
@@ -269,11 +326,14 @@ export default function Medicine() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Medicine Tracker</Text>
-        <TouchableOpacity style={[
-          styles.addButton, 
-          { backgroundColor: colors.surface },
-          colorScheme === 'light' ? Shadows.light : Shadows.dark
-        ]}>
+        <TouchableOpacity 
+          style={[
+            styles.addButton, 
+            { backgroundColor: colors.surface },
+            colorScheme === 'light' ? Shadows.light : Shadows.dark
+          ]}
+          onPress={() => Alert.alert('Add Medicine', 'Medicine setup form would open here')}
+        >
           <Plus size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
@@ -294,10 +354,7 @@ export default function Medicine() {
           >
             <Text style={[
               styles.tabText,
-              { color: activeTab === index ? 
-                (colorScheme === 'light' ? colors.surface : colors.background) : 
-                colors.textMuted 
-              }
+              { color: activeTab === index ? colors.surface : colors.textMuted }
             ]}>
               {tab}
             </Text>
@@ -345,19 +402,19 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
     marginHorizontal: Spacing.xs,
     alignItems: 'center',
     minHeight: 44,
     justifyContent: 'center',
   },
-  activeTab: {
-  },
+  activeTab: {},
   tabText: {
-    ...Typography.body,
+    ...Typography.caption,
     fontFamily: 'Inter-SemiBold',
     fontSize: 13,
+    textAlign: 'center',
   },
   content: {
     flex: 1,
@@ -372,7 +429,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   progressTitle: {
-    ...Typography.title,
+    ...Typography.subtitle,
     marginBottom: Spacing.lg,
   },
   progressStats: {
@@ -388,8 +445,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   progressLabel: {
-    ...Typography.body,
-    fontSize: 12,
+    ...Typography.caption,
     marginTop: Spacing.xs,
   },
   progressDivider: {
@@ -401,12 +457,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
+    paddingVertical: Spacing.md,
   },
   sectionTitle: {
-    ...Typography.title,
-    fontSize: 20,
+    ...Typography.subtitle,
     marginBottom: Spacing.lg,
+  },
+  sectionSubtitle: {
+    ...Typography.caption,
+    marginTop: Spacing.xs,
   },
   scheduleItem: {
     flexDirection: 'row',
@@ -433,23 +493,49 @@ const styles = StyleSheet.create({
   medicineName: {
     ...Typography.subtitle,
   },
-  medicineStatus: {
-    ...Typography.body,
+  medicineDosage: {
+    ...Typography.caption,
     marginTop: Spacing.xs,
   },
-  scheduleAction: {
+  conditionText: {
+    ...Typography.caption,
+    marginTop: Spacing.xs,
+  },
+  scheduleActions: {
     marginLeft: Spacing.lg,
   },
-  takeButton: {
+  takenIndicator: {
+    alignItems: 'center',
+  },
+  takenText: {
+    ...Typography.caption,
+    marginTop: Spacing.xs,
+    fontFamily: 'Inter-SemiBold',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
     borderRadius: BorderRadius.sm,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    minHeight: 36,
     justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
+  },
+  takeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    minHeight: 36,
   },
   takeButtonText: {
-    ...Typography.body,
+    ...Typography.caption,
     fontFamily: 'Inter-SemiBold',
+    marginLeft: Spacing.xs,
   },
   medicinesContainer: {
     paddingBottom: Spacing.xxl,
@@ -465,20 +551,21 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   medicineIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: Spacing.md,
   },
   medicineInfo: {
     flex: 1,
   },
-  medicineDosage: {
-    ...Typography.body,
-    marginTop: Spacing.xs,
-  },
   medicineStatus: {
     alignItems: 'flex-end',
   },
   frequencyText: {
-    ...Typography.body,
+    ...Typography.caption,
     fontFamily: 'Inter-SemiBold',
   },
   medicineDetails: {
@@ -493,22 +580,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   nextDoseText: {
-    ...Typography.body,
+    ...Typography.caption,
     fontFamily: 'Inter-SemiBold',
     marginLeft: Spacing.sm,
   },
   doseTimes: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   doseTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     marginRight: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
   doseTimeText: {
-    ...Typography.body,
-    fontSize: 12,
+    ...Typography.caption,
+  },
+  addMedicineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.lg,
+    marginTop: Spacing.lg,
+    minHeight: 56,
+  },
+  addMedicineText: {
+    ...Typography.subtitle,
+    marginLeft: Spacing.sm,
   },
   calendarContainer: {
     paddingBottom: Spacing.xxl,
@@ -519,7 +622,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   statsTitle: {
-    ...Typography.title,
+    ...Typography.subtitle,
     marginBottom: Spacing.lg,
   },
   statsGrid: {
@@ -536,8 +639,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   statLabel: {
-    ...Typography.body,
-    fontSize: 12,
+    ...Typography.caption,
     marginTop: Spacing.xs,
   },
   activityList: {

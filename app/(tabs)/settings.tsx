@@ -9,18 +9,33 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import { User, Bell, Moon, Shield, Download, Upload, Users, CircleHelp as HelpCircle, LogOut, ChevronRight, Volume2, Vibrate, Cloud, Info } from 'lucide-react-native';
+import { 
+  User, 
+  Bell, 
+  Shield, 
+  Download, 
+  Upload, 
+  Users, 
+  CircleHelp as HelpCircle, 
+  LogOut, 
+  ChevronRight, 
+  Volume2, 
+  Vibrate, 
+  Cloud, 
+  Info,
+  Calendar
+} from 'lucide-react-native';
 import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
 import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
 export default function Settings() {
-  const [darkMode, setDarkMode] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [expiryReminders, setExpiryReminders] = useState(true);
   const [medicineReminders, setMedicineReminders] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [cloudSync, setCloudSync] = useState(false);
+  const [calendarSync, setCalendarSync] = useState(false);
   
   const colors = useThemeColors();
   const colorScheme = useColorScheme();
@@ -31,13 +46,22 @@ export default function Settings() {
       'Are you sure you want to logout?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: () => {} },
+        { text: 'Logout', style: 'destructive', onPress: () => Alert.alert('Logged out', 'You have been logged out') },
       ]
     );
   };
 
   const handleExportData = () => {
-    Alert.alert('Export Data', 'Your data will be exported as a JSON file');
+    Alert.alert(
+      'Export Data',
+      'Choose export format:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'CSV', onPress: () => Alert.alert('Exported', 'Data exported as CSV') },
+        { text: 'JSON', onPress: () => Alert.alert('Exported', 'Data exported as JSON') },
+        { text: 'PDF', onPress: () => Alert.alert('Exported', 'Data exported as PDF') },
+      ]
+    );
   };
 
   const handleImportData = () => {
@@ -45,7 +69,15 @@ export default function Settings() {
   };
 
   const handleHouseholdSharing = () => {
-    Alert.alert('Household Sharing', 'Add members via email or QR invite');
+    Alert.alert(
+      'Household Sharing',
+      'How would you like to add members?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Email Invite', onPress: () => Alert.alert('Email', 'Email invite would be sent') },
+        { text: 'QR Code', onPress: () => Alert.alert('QR Code', 'QR code sharing would open') },
+      ]
+    );
   };
 
   const SettingItem = ({ 
@@ -55,7 +87,8 @@ export default function Settings() {
     onPress, 
     rightElement, 
     showChevron = true,
-    iconColor = colors.primary
+    iconColor = colors.primary,
+    iconBgColor = colors.primary + '20'
   }: {
     icon: any;
     title: string;
@@ -64,6 +97,7 @@ export default function Settings() {
     rightElement?: React.ReactNode;
     showChevron?: boolean;
     iconColor?: string;
+    iconBgColor?: string;
   }) => (
     <TouchableOpacity 
       style={[
@@ -74,7 +108,7 @@ export default function Settings() {
       onPress={onPress}
     >
       <View style={styles.settingLeft}>
-        <View style={[styles.iconContainer, { backgroundColor: colors.background }]}>
+        <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
           <Icon size={20} color={iconColor} />
         </View>
         <View style={styles.settingText}>
@@ -104,7 +138,6 @@ export default function Settings() {
       onValueChange={onValueChange}
       trackColor={{ false: colors.border, true: colors.primary + '40' }}
       thumbColor={value ? colors.primary : colors.textMuted}
-      style={colorScheme === 'light' ? Shadows.light : {}}
     />
   );
 
@@ -128,7 +161,7 @@ export default function Settings() {
           <SettingItem
             icon={Bell}
             title="Push Notifications"
-            subtitle="Enable or disable notifications"
+            subtitle="Enable or disable all notifications"
             rightElement={
               <CustomSwitch
                 value={notifications}
@@ -148,6 +181,8 @@ export default function Settings() {
               />
             }
             showChevron={false}
+            iconColor={colors.warning}
+            iconBgColor={colors.warning + '20'}
           />
           <SettingItem
             icon={Bell}
@@ -160,6 +195,8 @@ export default function Settings() {
               />
             }
             showChevron={false}
+            iconColor={colors.success}
+            iconBgColor={colors.success + '20'}
           />
         </SettingSection>
 
@@ -175,6 +212,8 @@ export default function Settings() {
               />
             }
             showChevron={false}
+            iconColor={colors.primary}
+            iconBgColor={colors.primary + '20'}
           />
           <SettingItem
             icon={Vibrate}
@@ -187,46 +226,15 @@ export default function Settings() {
               />
             }
             showChevron={false}
+            iconColor={colors.primary}
+            iconBgColor={colors.primary + '20'}
           />
         </SettingSection>
 
-        <SettingSection title="Appearance">
-          <SettingItem
-            icon={Moon}
-            title="Dark Mode"
-            subtitle="Switch between light and dark theme"
-            rightElement={
-              <CustomSwitch
-                value={darkMode}
-                onValueChange={setDarkMode}
-              />
-            }
-            showChevron={false}
-          />
-        </SettingSection>
-
-        <SettingSection title="Data & Privacy">
-          <SettingItem
-            icon={Shield}
-            title="Privacy Policy"
-            subtitle="Read our privacy policy"
-            onPress={() => Alert.alert('Privacy', 'Privacy policy would open here')}
-          />
-          <SettingItem
-            icon={Download}
-            title="Export Data"
-            subtitle="Download your data as CSV or JSON"
-            onPress={handleExportData}
-          />
-          <SettingItem
-            icon={Upload}
-            title="Import Data"
-            subtitle="Import data from backup"
-            onPress={handleImportData}
-          />
+        <SettingSection title="Data & Sync">
           <SettingItem
             icon={Cloud}
-            title="Sync to Cloud"
+            title="Cloud Sync"
             subtitle="Auto-backup to Google Drive / iCloud"
             rightElement={
               <CustomSwitch
@@ -235,15 +243,57 @@ export default function Settings() {
               />
             }
             showChevron={false}
+            iconColor={colors.primary}
+            iconBgColor={colors.primary + '20'}
+          />
+          <SettingItem
+            icon={Calendar}
+            title="Calendar Sync"
+            subtitle="Sync medicine reminders to calendar"
+            rightElement={
+              <CustomSwitch
+                value={calendarSync}
+                onValueChange={setCalendarSync}
+              />
+            }
+            showChevron={false}
+            iconColor={colors.warning}
+            iconBgColor={colors.warning + '20'}
+          />
+          <SettingItem
+            icon={Download}
+            title="Export Data"
+            subtitle="Download your data as CSV, JSON, or PDF"
+            onPress={handleExportData}
+            iconColor={colors.success}
+            iconBgColor={colors.success + '20'}
+          />
+          <SettingItem
+            icon={Upload}
+            title="Import Data"
+            subtitle="Import data from backup file"
+            onPress={handleImportData}
+            iconColor={colors.warning}
+            iconBgColor={colors.warning + '20'}
           />
         </SettingSection>
 
-        <SettingSection title="Sharing">
+        <SettingSection title="Privacy & Security">
+          <SettingItem
+            icon={Shield}
+            title="Privacy Policy"
+            subtitle="Read our privacy policy"
+            onPress={() => Alert.alert('Privacy', 'Privacy policy would open here')}
+            iconColor={colors.primary}
+            iconBgColor={colors.primary + '20'}
+          />
           <SettingItem
             icon={Users}
             title="Household Sharing"
             subtitle="Add members via email or QR invite"
             onPress={handleHouseholdSharing}
+            iconColor={colors.success}
+            iconBgColor={colors.success + '20'}
           />
         </SettingSection>
 
@@ -253,12 +303,16 @@ export default function Settings() {
             title="Help & Support"
             subtitle="Get help and contact support"
             onPress={() => Alert.alert('Help', 'Help center would open here')}
+            iconColor={colors.primary}
+            iconBgColor={colors.primary + '20'}
           />
           <SettingItem
             icon={Info}
             title="About UseBy"
             subtitle="App version, data policy, contact info"
             onPress={() => Alert.alert('About', 'UseBy v1.0.0\nSmart expiry tracking for your household')}
+            iconColor={colors.primary}
+            iconBgColor={colors.primary + '20'}
           />
         </SettingSection>
 
@@ -271,8 +325,11 @@ export default function Settings() {
             ]} 
             onPress={handleLogout}
           >
-            <LogOut size={20} color={colors.error} />
+            <View style={[styles.logoutIconContainer, { backgroundColor: colors.error + '20' }]}>
+              <LogOut size={20} color={colors.error} />
+            </View>
             <Text style={[styles.logoutText, { color: colors.error }]}>Logout</Text>
+            <ChevronRight size={20} color={colors.error} />
           </TouchableOpacity>
         </View>
 
@@ -340,7 +397,7 @@ const styles = StyleSheet.create({
     ...Typography.subtitle,
   },
   settingSubtitle: {
-    ...Typography.body,
+    ...Typography.caption,
     marginTop: Spacing.xs,
   },
   settingRight: {
@@ -350,15 +407,22 @@ const styles = StyleSheet.create({
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     borderRadius: BorderRadius.md,
     padding: Spacing.lg,
     borderWidth: 2,
-    minHeight: 56,
+    minHeight: 72,
+  },
+  logoutIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.lg,
   },
   logoutText: {
     ...Typography.subtitle,
-    marginLeft: Spacing.sm,
+    flex: 1,
   },
   footer: {
     alignItems: 'center',
@@ -369,8 +433,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
   },
   footerSubtext: {
-    ...Typography.body,
-    fontSize: 12,
+    ...Typography.caption,
     marginTop: Spacing.xs,
     textAlign: 'center',
   },

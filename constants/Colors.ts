@@ -1,11 +1,12 @@
 export const Colors = {
   light: {
     background: '#F0F5F9',
-    surface: '#C9D6DF',
+    surface: '#FFFFFF',
+    card: '#C9D6DF',
     primary: '#52616B',
     text: '#1E2022',
-    textSecondary: '#1E2022',
-    textMuted: '#52616B',
+    textSecondary: '#52616B',
+    textMuted: '#52616B99',
     border: '#C9D6DF',
     success: '#4CAF50',
     warning: '#FF9800',
@@ -14,11 +15,12 @@ export const Colors = {
   },
   dark: {
     background: '#1E2022',
-    surface: '#52616B',
+    surface: '#2A2D30',
+    card: '#52616B',
     primary: '#C9D6DF',
     text: '#F0F5F9',
-    textSecondary: '#F0F5F9',
-    textMuted: '#C9D6DF',
+    textSecondary: '#C9D6DF',
+    textMuted: '#C9D6DF99',
     border: '#52616B',
     success: '#4CAF50',
     warning: '#FF9800',
@@ -38,22 +40,31 @@ export const Spacing = {
 
 export const Typography = {
   title: {
-    fontSize: 18,
+    fontSize: 24,
     fontFamily: 'Inter-Bold',
+    lineHeight: 32,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-SemiBold',
+    lineHeight: 24,
   },
   body: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
+    lineHeight: 22,
+  },
+  caption: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    lineHeight: 20,
   },
   label: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
     textTransform: 'uppercase' as const,
     letterSpacing: 0.5,
+    lineHeight: 16,
   },
 };
 
