@@ -11,7 +11,7 @@ import {
   Modal,
   Alert,
 } from 'react-native';
-import { Search, Filter, Plus, Edit, RotateCcw, Check, X, Calendar, Tag } from 'lucide-react-native';
+import { Search, Filter, Plus, CreditCard as Edit, RotateCcw, Check, X, Calendar, Tag } from 'lucide-react-native';
 import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
 import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
