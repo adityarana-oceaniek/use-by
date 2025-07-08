@@ -122,9 +122,8 @@ export default function Home() {
         {tabs.map((tab, index) => (
           <TouchableOpacity
             key={index}
-            style={[styles.tab, activeTab === index && styles.activeTab]}
-            onPress={() => setActiveTab(index)}
-              activeTab === index && { backgroundColor: colors.primary }
+            style={[styles.tab, activeTab === index && styles.activeTab, 
+              activeTab === index && { backgroundColor: colors.primary }]}>
             <Text style={[
               styles.tabText, 
               { color: activeTab === index ? colors.surface : colors.textMuted }
