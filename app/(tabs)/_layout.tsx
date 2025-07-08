@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, Pill, ShoppingBag, Bell, Settings } from 'lucide-react-native';
+import { Chrome as Home, Pill, ShoppingBag, Bell, Settings } from 'lucide-react-native';
 import { useThemeColors } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
