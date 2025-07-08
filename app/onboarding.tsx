@@ -6,37 +6,35 @@ import {
   Dimensions,
   TouchableOpacity,
   ScrollView,
-  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Clock, Shield, ShoppingCart, ArrowRight, ArrowLeft } from 'lucide-react-native';
+import { Clock, Shield, ShoppingCart, ArrowRight, ArrowLeft, Bell } from 'lucide-react-native';
+import { useThemeColors } from '@/hooks/useColorScheme';
+import { Spacing, Typography, BorderRadius } from '@/constants/Colors';
 
 const { width } = Dimensions.get('window');
 
 const onboardingData = [
   {
     id: 1,
-    title: 'Track Everything',
-    subtitle: 'Never waste products again',
-    description: 'Monitor expiry dates for cosmetics, medicines, cleaning products, and more. Get smart reminders before items expire.',
+    title: 'Track what you use',
+    subtitle: 'before you lose it',
+    description: 'Monitor expiry dates for cosmetics, medicines, cleaning products, batteries and more. Get smart reminders before items expire.',
     icon: Clock,
-    color: '#76ABAE',
   },
   {
     id: 2,
-    title: 'Stay Safe & Healthy',
-    subtitle: 'Medicine reminders made simple',
-    description: 'Set up medicine schedules, track doses, and get timely reminders. Monitor your health compliance effortlessly.',
+    title: 'Smart Categories',
+    subtitle: 'Cosmetics, meds, batteries & more',
+    description: 'Organize your household items by type. Track skincare routines, medicine schedules, and battery replacements all in one place.',
     icon: Shield,
-    color: '#76ABAE',
   },
   {
     id: 3,
-    title: 'Smart Reordering',
-    subtitle: 'Seamless shopping integration',
-    description: 'Automatically create shopping lists and connect with Blinkit, Instamart for instant reordering of expired items.',
-    icon: ShoppingCart,
-    color: '#76ABAE',
+    title: 'Stay Notified',
+    subtitle: 'Never miss important reminders',
+    description: 'Get timely notifications for expiring items, medicine doses, and reorder suggestions. Stay on top of your household needs.',
+    icon: Bell,
   },
 ];
 
@@ -44,6 +42,7 @@ export default function Onboarding() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const router = useRouter();
+  const colors = useThemeColors();
 
   const handleNext = () => {
     if (currentIndex < onboardingData.length - 1) {
@@ -71,7 +70,7 @@ export default function Onboarding() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -83,15 +82,15 @@ export default function Onboarding() {
         {onboardingData.map((item, index) => (
           <View key={item.id} style={styles.slide}>
             <View style={styles.iconContainer}>
-              <View style={[styles.iconBackground, { backgroundColor: item.color + '20' }]}>
-                <item.icon size={64} color={item.color} strokeWidth={1.5} />
+              <View style={[styles.iconBackground, { backgroundColor: colors.primary + '20' }]}>
+                <item.icon size={64} color={colors.primary} strokeWidth={1.5} />
               </View>
             </View>
             
             <View style={styles.textContainer}>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.subtitle}>{item.subtitle}</Text>
-              <Text style={styles.description}>{item.description}</Text>
+              <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
+              <Text style={[styles.subtitle, { color: colors.primary }]}>{item.subtitle}</Text>
+              <Text style={[styles.description, { color: colors.textMuted }]}>{item.description}</Text>
             </View>
           </View>
         ))}
@@ -104,7 +103,9 @@ export default function Onboarding() {
               key={index}
               style={[
                 styles.dot,
-                index === currentIndex ? styles.activeDot : styles.inactiveDot,
+                index === currentIndex 
+                  ? [styles.activeDot, { backgroundColor: colors.primary }]
+                  : [styles.inactiveDot, { backgroundColor: colors.border }],
               ]}
             />
           ))}
@@ -112,17 +113,17 @@ export default function Onboarding() {
 
         <View style={styles.buttonContainer}>
           {currentIndex > 0 && (
-            <TouchableOpacity style={styles.backButton} onPress={handlePrevious}>
-              <ArrowLeft size={20} color="#76ABAE" />
-              <Text style={styles.backButtonText}>Back</Text>
+            <TouchableOpacity style={[styles.backButton]} onPress={handlePrevious}>
+              <ArrowLeft size={20} color={colors.primary} />
+              <Text style={[styles.backButtonText, { color: colors.primary }]}>Back</Text>
             </TouchableOpacity>
           )}
           
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextButtonText}>
+          <TouchableOpacity style={[styles.nextButton, { backgroundColor: colors.primary }]} onPress={handleNext}>
+            <Text style={[styles.nextButtonText, { color: colors.surface }]}>
               {currentIndex === onboardingData.length - 1 ? 'Get Started' : 'Next'}
             </Text>
-            <ArrowRight size={20} color="#FFFFFF" />
+            <ArrowRight size={20} color={colors.surface} />
           </TouchableOpacity>
         </View>
       </View>
@@ -133,7 +134,6 @@ export default function Onboarding() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#222831',
   },
   scrollView: {
     flex: 1,
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   slide: {
     width,
     flex: 1,
-    paddingHorizontal: 32,
+    paddingHorizontal: Spacing.xxl,
     paddingTop: 80,
     alignItems: 'center',
   },
@@ -163,50 +163,44 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   title: {
+    ...Typography.title,
     fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#EEEEEE',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   subtitle: {
+    ...Typography.subtitle,
     fontSize: 18,
-    fontFamily: 'Inter-Medium',
-    color: '#76ABAE',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: Spacing.xl,
   },
   description: {
+    ...Typography.body,
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
     textAlign: 'center',
     lineHeight: 24,
-    opacity: 0.8,
   },
   footer: {
-    paddingHorizontal: 32,
+    paddingHorizontal: Spacing.xxl,
     paddingBottom: 48,
-    paddingTop: 24,
+    paddingTop: Spacing.xl,
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: Spacing.xxl,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
+    width: Spacing.sm,
+    height: Spacing.sm,
+    borderRadius: Spacing.xs,
+    marginHorizontal: Spacing.xs,
   },
   activeDot: {
-    backgroundColor: '#76ABAE',
     width: 24,
   },
   inactiveDot: {
-    backgroundColor: '#31363F',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -216,30 +210,25 @@ const styles = StyleSheet.create({
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
   },
   backButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#76ABAE',
-    marginLeft: 8,
+    ...Typography.subtitle,
+    marginLeft: Spacing.sm,
   },
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#76ABAE',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xxl,
+    borderRadius: BorderRadius.md,
     flex: 1,
-    marginLeft: 16,
+    marginLeft: Spacing.lg,
     justifyContent: 'center',
   },
   nextButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
-    marginRight: 8,
+    ...Typography.subtitle,
+    marginRight: Spacing.sm,
   },
 });

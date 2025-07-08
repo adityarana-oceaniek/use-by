@@ -9,6 +9,8 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Search, Filter, Bell } from 'lucide-react-native';
+import { useThemeColors } from '@/hooks/useColorScheme';
+import { Spacing, Typography, BorderRadius } from '@/constants/Colors';
 
 const mockProducts = [
   {
@@ -53,6 +55,7 @@ const tabs = ['Fresh', 'Expiring Soon', 'Expired'];
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState(0);
+  const colors = useThemeColors();
 
   const getFilteredProducts = () => {
     switch (activeTab) {
@@ -70,13 +73,13 @@ export default function Home() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'fresh':
-        return '#4CAF50';
+        return colors.success;
       case 'expiring':
-        return '#FF9800';
+        return colors.warning;
       case 'expired':
-        return '#F44336';
+        return colors.error;
       default:
-        return '#76ABAE';
+        return colors.primary;
     }
   };
 
@@ -93,25 +96,25 @@ export default function Home() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good morning!</Text>
-          <Text style={styles.subtitle}>Track your household items</Text>
+          <Text style={[styles.greeting, { color: colors.text }]}>Good morning!</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>Track your household items</Text>
         </View>
         <TouchableOpacity style={styles.notificationButton}>
-          <Bell size={24} color="#EEEEEE" />
-          <View style={styles.notificationBadge} />
+          <Bell size={24} color={colors.text} />
+          <View style={[styles.notificationBadge, { backgroundColor: colors.error }]} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Search size={20} color="#76ABAE" />
-          <Text style={styles.searchPlaceholder}>Search products...</Text>
+        <View style={[styles.searchBar, { backgroundColor: colors.surface }]}>
+          <Search size={20} color={colors.primary} />
+          <Text style={[styles.searchPlaceholder, { color: colors.textMuted }]}>Search products...</Text>
         </View>
-        <TouchableOpacity style={styles.filterButton}>
-          <Filter size={20} color="#76ABAE" />
+        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface }]}>
+          <Filter size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -121,8 +124,11 @@ export default function Home() {
             key={index}
             style={[styles.tab, activeTab === index && styles.activeTab]}
             onPress={() => setActiveTab(index)}
-          >
-            <Text style={[styles.tabText, activeTab === index && styles.activeTabText]}>
+              activeTab === index && { backgroundColor: colors.primary }
+            <Text style={[
+              styles.tabText, 
+              { color: activeTab === index ? colors.surface : colors.textMuted }
+            ]}>
               {tab}
             </Text>
           </TouchableOpacity>
@@ -131,12 +137,12 @@ export default function Home() {
 
       <ScrollView style={styles.productList} showsVerticalScrollIndicator={false}>
         {getFilteredProducts().map((product) => (
-          <TouchableOpacity key={product.id} style={styles.productCard}>
+          <TouchableOpacity key={product.id} style={[styles.productCard, { backgroundColor: colors.surface }]}>
             <Image source={{ uri: product.image }} style={styles.productImage} />
             
             <View style={styles.productInfo}>
-              <Text style={styles.productName}>{product.name}</Text>
-              <Text style={styles.productCategory}>{product.category}</Text>
+              <Text style={[styles.productName, { color: colors.text }]}>{product.name}</Text>
+              <Text style={[styles.productCategory, { color: colors.textMuted }]}>{product.category}</Text>
               <Text style={[styles.productStatus, { color: getStatusColor(product.status) }]}>
                 {getStatusText(product.daysLeft)}
               </Text>
@@ -162,8 +168,8 @@ export default function Home() {
 
         {getFilteredProducts().length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateTitle}>No items found</Text>
-            <Text style={styles.emptyStateText}>
+            <Text style={[styles.emptyStateTitle, { color: colors.text }]}>No items found</Text>
+            <Text style={[styles.emptyStateText, { color: colors.textMuted }]}>
               {activeTab === 0 && "You don't have any fresh items yet."}
               {activeTab === 1 && "No items are expiring soon."}
               {activeTab === 2 && "No expired items found."}
@@ -178,65 +184,56 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#222831',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
   },
   greeting: {
+    ...Typography.title,
     fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#EEEEEE',
   },
   subtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
-    opacity: 0.7,
-    marginTop: 4,
+    ...Typography.body,
+    marginTop: Spacing.xs,
   },
   notificationButton: {
     position: 'relative',
-    padding: 8,
+    padding: Spacing.sm,
   },
   notificationBadge: {
     position: 'absolute',
     top: 6,
     right: 6,
-    width: 8,
-    height: 8,
-    backgroundColor: '#F44336',
-    borderRadius: 4,
+    width: Spacing.sm,
+    height: Spacing.sm,
+    borderRadius: Spacing.xs,
   },
   searchContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
-    marginBottom: 24,
+    paddingHorizontal: Spacing.xl,
+    marginBottom: Spacing.xl,
   },
   searchBar: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.lg,
     height: 48,
-    marginRight: 12,
+    marginRight: Spacing.md,
   },
   searchPlaceholder: {
+    ...Typography.body,
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#76ABAE',
-    marginLeft: 12,
+    marginLeft: Spacing.md,
   },
   filterButton: {
-    backgroundColor: '#31363F',
-    borderRadius: 12,
+    borderRadius: BorderRadius.md,
     width: 48,
     height: 48,
     justifyContent: 'center',
@@ -244,70 +241,54 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
-    marginBottom: 24,
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginHorizontal: 4,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.sm,
+    marginHorizontal: Spacing.xs,
     alignItems: 'center',
   },
-  activeTab: {
-    backgroundColor: '#76ABAE',
-  },
   tabText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#EEEEEE',
-    opacity: 0.7,
-  },
-  activeTabText: {
-    color: '#FFFFFF',
-    opacity: 1,
+    ...Typography.body,
   },
   productList: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: Spacing.xl,
   },
   productCard: {
     flexDirection: 'row',
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
     alignItems: 'center',
   },
   productImage: {
     width: 64,
     height: 64,
-    borderRadius: 8,
-    marginRight: 16,
+    borderRadius: BorderRadius.sm,
+    marginRight: Spacing.lg,
   },
   productInfo: {
     flex: 1,
   },
   productName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#EEEEEE',
-    marginBottom: 4,
+    ...Typography.subtitle,
+    marginBottom: Spacing.xs,
   },
   productCategory: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
-    opacity: 0.6,
-    marginBottom: 4,
+    ...Typography.body,
+    marginBottom: Spacing.xs,
   },
   productStatus: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    ...Typography.body,
+    fontFamily: 'Inter-SemiBold',
   },
   statusIndicator: {
-    marginLeft: 16,
+    marginLeft: Spacing.lg,
   },
   statusRing: {
     width: 32,
@@ -327,16 +308,11 @@ const styles = StyleSheet.create({
     paddingVertical: 48,
   },
   emptyStateTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#EEEEEE',
-    marginBottom: 8,
+    ...Typography.title,
+    marginBottom: Spacing.sm,
   },
   emptyStateText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
-    opacity: 0.6,
+    ...Typography.body,
     textAlign: 'center',
   },
 });
