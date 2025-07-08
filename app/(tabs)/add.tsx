@@ -10,14 +10,26 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import { Camera, Search, Calendar, Tag, Package } from 'lucide-react-native';
+import { Camera, Search, Calendar, Tag, Package, CheckCircle } from 'lucide-react-native';
+import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
+import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
 const categories = [
-  { id: 'medicine', name: 'Medicine', icon: '💊' },
-  { id: 'cosmetics', name: 'Cosmetics', icon: '🧴' },
-  { id: 'cleaning', name: 'Cleaning', icon: '🧽' },
-  { id: 'food', name: 'Food', icon: '🥫' },
-  { id: 'other', name: 'Other', icon: '📦' },
+  { id: 'medicine', name: 'Medicine', icon: '💊', color: '#FF6B6B' },
+  { id: 'cosmetics', name: 'Cosmetics', icon: '🧴', color: '#4ECDC4' },
+  { id: 'cleaning', name: 'Cleaning', icon: '🧽', color: '#45B7D1' },
+  { id: 'food', name: 'Food', icon: '🥫', color: '#96CEB4' },
+  { id: 'batteries', name: 'Batteries', icon: '🔋', color: '#FFEAA7' },
+  { id: 'other', name: 'Other', icon: '📦', color: '#DDA0DD' },
+];
+
+const quickTags = [
+  'Store in fridge',
+  'Light-sensitive', 
+  'Keep dry',
+  'Shake before use',
+  'Take with food',
+  'Fragile'
 ];
 
 export default function Add() {
@@ -26,7 +38,11 @@ export default function Add() {
   const [openDate, setOpenDate] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [notes, setNotes] = useState('');
-  const [productImage, setProductImage] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showSuccess, setShowSuccess] = useState(false);
+  
+  const colors = useThemeColors();
+  const colorScheme = useColorScheme();
 
   const handleScanBarcode = () => {
     Alert.alert('Camera', 'Barcode scanning would open camera here');
@@ -36,77 +52,126 @@ export default function Add() {
     Alert.alert('Search', 'Product search would open here');
   };
 
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
   const handleSaveProduct = () => {
     if (!productName || !selectedCategory) {
       Alert.alert('Error', 'Please fill in required fields');
       return;
     }
-    Alert.alert('Success', 'Product added successfully!');
-    // Reset form
-    setProductName('');
-    setSelectedCategory('');
-    setOpenDate('');
-    setExpiryDate('');
-    setNotes('');
-    setProductImage('');
+    
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+      // Reset form
+      setProductName('');
+      setSelectedCategory('');
+      setOpenDate('');
+      setExpiryDate('');
+      setNotes('');
+      setSelectedTags([]);
+    }, 2000);
   };
 
+  if (showSuccess) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.successContainer}>
+          <View style={[styles.successIcon, { backgroundColor: colors.success + '20' }]}>
+            <CheckCircle size={64} color={colors.success} />
+          </View>
+          <Text style={[styles.successTitle, { color: colors.text }]}>Product Added!</Text>
+          <Text style={[styles.successMessage, { color: colors.textMuted }]}>
+            {productName} has been successfully added to your inventory
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Add Product</Text>
-        <Text style={styles.subtitle}>Track a new household item</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Add Product</Text>
+        <Text style={[styles.subtitle, { color: colors.textMuted }]}>Track a new household item</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.scanSection}>
-          <TouchableOpacity style={styles.scanButton} onPress={handleScanBarcode}>
-            <Camera size={24} color="#FFFFFF" />
-            <Text style={styles.scanButtonText}>Scan Barcode</Text>
+        <View style={[
+          styles.scanSection, 
+          { backgroundColor: colors.surface },
+          colorScheme === 'light' ? Shadows.light : Shadows.dark
+        ]}>
+          <TouchableOpacity 
+            style={[styles.scanButton, { backgroundColor: colors.primary }]} 
+            onPress={handleScanBarcode}
+          >
+            <Camera size={24} color={colorScheme === 'light' ? colors.surface : colors.background} />
+            <Text style={[styles.scanButtonText, { color: colorScheme === 'light' ? colors.surface : colors.background }]}>
+              Scan Barcode
+            </Text>
           </TouchableOpacity>
           
           <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            <Text style={[styles.dividerText, { color: colors.textMuted }]}>or</Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
 
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearchProduct}>
-            <Search size={20} color="#76ABAE" />
-            <Text style={styles.searchButtonText}>Search Product Database</Text>
+          <TouchableOpacity 
+            style={[styles.searchButton, { backgroundColor: colors.background, borderColor: colors.primary }]} 
+            onPress={handleSearchProduct}
+          >
+            <Search size={20} color={colors.primary} />
+            <Text style={[styles.searchButtonText, { color: colors.primary }]}>Search Product Database</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Product Details</Text>
+        <View style={[
+          styles.formSection, 
+          { backgroundColor: colors.surface },
+          colorScheme === 'light' ? Shadows.light : Shadows.dark
+        ]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Product Details</Text>
           
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Product Name *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Product Name *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
               placeholder="Enter product name"
-              placeholderTextColor="#76ABAE"
+              placeholderTextColor={colors.textMuted}
               value={productName}
               onChangeText={setProductName}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Category *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Category *</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
               {categories.map((category) => (
                 <TouchableOpacity
                   key={category.id}
                   style={[
                     styles.categoryButton,
-                    selectedCategory === category.id && styles.selectedCategory
+                    { backgroundColor: colors.background },
+                    selectedCategory === category.id && [
+                      styles.selectedCategory,
+                      { backgroundColor: category.color + '20', borderColor: category.color }
+                    ]
                   ]}
                   onPress={() => setSelectedCategory(category.id)}
                 >
                   <Text style={styles.categoryEmoji}>{category.icon}</Text>
                   <Text style={[
                     styles.categoryText,
-                    selectedCategory === category.id && styles.selectedCategoryText
+                    { color: colors.text },
+                    selectedCategory === category.id && { color: category.color, fontFamily: 'Inter-SemiBold' }
                   ]}>
                     {category.name}
                   </Text>
@@ -117,20 +182,20 @@ export default function Add() {
 
           <View style={styles.dateRow}>
             <View style={styles.dateInput}>
-              <Text style={styles.label}>Open Date</Text>
-              <TouchableOpacity style={styles.dateButton}>
-                <Calendar size={16} color="#76ABAE" />
-                <Text style={styles.dateButtonText}>
+              <Text style={[styles.label, { color: colors.text }]}>Open Date</Text>
+              <TouchableOpacity style={[styles.dateButton, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                <Calendar size={16} color={colors.primary} />
+                <Text style={[styles.dateButtonText, { color: colors.textMuted }]}>
                   {openDate || 'Select date'}
                 </Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.dateInput}>
-              <Text style={styles.label}>Expiry Date</Text>
-              <TouchableOpacity style={styles.dateButton}>
-                <Calendar size={16} color="#76ABAE" />
-                <Text style={styles.dateButtonText}>
+              <Text style={[styles.label, { color: colors.text }]}>Expiry Date</Text>
+              <TouchableOpacity style={[styles.dateButton, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                <Calendar size={16} color={colors.primary} />
+                <Text style={[styles.dateButtonText, { color: colors.textMuted }]}>
                   {expiryDate || 'Select date'}
                 </Text>
               </TouchableOpacity>
@@ -138,11 +203,11 @@ export default function Add() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Notes</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Notes</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
               placeholder="Add storage instructions, usage notes..."
-              placeholderTextColor="#76ABAE"
+              placeholderTextColor={colors.textMuted}
               multiline
               numberOfLines={3}
               value={notes}
@@ -151,21 +216,43 @@ export default function Add() {
           </View>
 
           <View style={styles.tagsSection}>
-            <Text style={styles.label}>Quick Tags</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Quick Tags</Text>
             <View style={styles.tagsContainer}>
-              {['Store in fridge', 'Light-sensitive', 'Keep dry', 'Shake before use'].map((tag) => (
-                <TouchableOpacity key={tag} style={styles.tag}>
-                  <Tag size={14} color="#76ABAE" />
-                  <Text style={styles.tagText}>{tag}</Text>
+              {quickTags.map((tag) => (
+                <TouchableOpacity 
+                  key={tag} 
+                  style={[
+                    styles.tag,
+                    { backgroundColor: colors.background, borderColor: colors.border },
+                    selectedTags.includes(tag) && { backgroundColor: colors.primary + '20', borderColor: colors.primary }
+                  ]}
+                  onPress={() => toggleTag(tag)}
+                >
+                  <Tag size={14} color={selectedTags.includes(tag) ? colors.primary : colors.textMuted} />
+                  <Text style={[
+                    styles.tagText, 
+                    { color: selectedTags.includes(tag) ? colors.primary : colors.textMuted }
+                  ]}>
+                    {tag}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveProduct}>
-          <Package size={20} color="#FFFFFF" />
-          <Text style={styles.saveButtonText}>Add Product</Text>
+        <TouchableOpacity 
+          style={[
+            styles.saveButton, 
+            { backgroundColor: colors.primary },
+            colorScheme === 'light' ? Shadows.light : {}
+          ]} 
+          onPress={handleSaveProduct}
+        >
+          <Package size={20} color={colorScheme === 'light' ? colors.surface : colors.background} />
+          <Text style={[styles.saveButtonText, { color: colorScheme === 'light' ? colors.surface : colors.background }]}>
+            Add Product
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -175,200 +262,203 @@ export default function Add() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#222831',
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
   },
   title: {
+    ...Typography.title,
     fontSize: 28,
-    fontFamily: 'Inter-Bold',
-    color: '#EEEEEE',
   },
   subtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
-    opacity: 0.7,
-    marginTop: 4,
+    ...Typography.body,
+    marginTop: Spacing.xs,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: Spacing.lg,
   },
   scanSection: {
-    marginBottom: 32,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   scanButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#76ABAE',
-    borderRadius: 12,
-    paddingVertical: 16,
-    marginBottom: 16,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.lg,
+    marginBottom: Spacing.lg,
+    minHeight: 56,
   },
   scanButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
-    marginLeft: 8,
+    ...Typography.subtitle,
+    marginLeft: Spacing.sm,
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 16,
+    marginVertical: Spacing.lg,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#31363F',
   },
   dividerText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
-    opacity: 0.5,
-    marginHorizontal: 16,
+    ...Typography.body,
+    marginHorizontal: Spacing.lg,
   },
   searchButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    paddingVertical: 16,
-    borderWidth: 1,
-    borderColor: '#76ABAE',
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.lg,
+    borderWidth: 2,
+    minHeight: 56,
   },
   searchButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#76ABAE',
-    marginLeft: 8,
+    ...Typography.subtitle,
+    marginLeft: Spacing.sm,
   },
   formSection: {
-    marginBottom: 32,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   sectionTitle: {
+    ...Typography.title,
     fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: '#EEEEEE',
-    marginBottom: 24,
+    marginBottom: Spacing.lg,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: Spacing.lg,
   },
   label: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#EEEEEE',
-    marginBottom: 8,
+    ...Typography.body,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: Spacing.sm,
   },
   input: {
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#EEEEEE',
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    ...Typography.body,
+    borderWidth: 1,
+    minHeight: 56,
   },
   textArea: {
     height: 80,
     textAlignVertical: 'top',
   },
   categoryScroll: {
-    marginTop: 8,
+    marginTop: Spacing.sm,
   },
   categoryButton: {
     alignItems: 'center',
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginRight: 12,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    marginRight: Spacing.md,
     minWidth: 80,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   selectedCategory: {
-    backgroundColor: '#76ABAE',
+    borderWidth: 2,
   },
   categoryEmoji: {
     fontSize: 24,
-    marginBottom: 4,
+    marginBottom: Spacing.xs,
   },
   categoryText: {
+    ...Typography.body,
     fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#EEEEEE',
-    opacity: 0.7,
-  },
-  selectedCategoryText: {
-    color: '#FFFFFF',
-    opacity: 1,
+    textAlign: 'center',
   },
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: Spacing.lg,
   },
   dateInput: {
     flex: 1,
-    marginHorizontal: 6,
+    marginHorizontal: Spacing.xs,
   },
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#31363F',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    borderWidth: 1,
+    minHeight: 56,
   },
   dateButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#76ABAE',
-    marginLeft: 8,
+    ...Typography.body,
+    marginLeft: Spacing.sm,
   },
   tagsSection: {
-    marginTop: 8,
+    marginTop: Spacing.sm,
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 8,
+    marginTop: Spacing.sm,
   },
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#31363F',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 8,
-    marginBottom: 8,
+    borderRadius: BorderRadius.xl,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginRight: Spacing.sm,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
   },
   tagText: {
+    ...Typography.body,
     fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#76ABAE',
-    marginLeft: 4,
+    marginLeft: Spacing.xs,
   },
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#76ABAE',
-    borderRadius: 12,
-    paddingVertical: 16,
-    marginBottom: 32,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.lg,
+    marginBottom: Spacing.xxl,
+    minHeight: 56,
   },
   saveButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
-    marginLeft: 8,
+    ...Typography.subtitle,
+    marginLeft: Spacing.sm,
+  },
+  successContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  successIcon: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  successTitle: {
+    ...Typography.title,
+    fontSize: 24,
+    marginBottom: Spacing.md,
+  },
+  successMessage: {
+    ...Typography.body,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

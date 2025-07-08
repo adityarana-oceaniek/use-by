@@ -8,9 +8,9 @@ import {
   Image,
   SafeAreaView,
 } from 'react-native';
-import { Search, Filter, Bell } from 'lucide-react-native';
-import { useThemeColors } from '@/hooks/useColorScheme';
-import { Spacing, Typography, BorderRadius } from '@/constants/Colors';
+import { Search, Filter, Bell, Edit, Eye } from 'lucide-react-native';
+import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
+import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
 const mockProducts = [
   {
@@ -21,6 +21,7 @@ const mockProducts = [
     daysLeft: 5,
     status: 'expiring',
     openDate: '2024-01-15',
+    progress: 0.2,
   },
   {
     id: 2,
@@ -30,6 +31,7 @@ const mockProducts = [
     daysLeft: 45,
     status: 'fresh',
     openDate: '2024-01-10',
+    progress: 0.8,
   },
   {
     id: 3,
@@ -39,6 +41,7 @@ const mockProducts = [
     daysLeft: -2,
     status: 'expired',
     openDate: '2023-12-20',
+    progress: 0,
   },
   {
     id: 4,
@@ -48,6 +51,7 @@ const mockProducts = [
     daysLeft: 120,
     status: 'fresh',
     openDate: '2024-01-05',
+    progress: 0.95,
   },
 ];
 
@@ -56,6 +60,7 @@ const tabs = ['Fresh', 'Expiring Soon', 'Expired'];
 export default function Home() {
   const [activeTab, setActiveTab] = useState(0);
   const colors = useThemeColors();
+  const colorScheme = useColorScheme();
 
   const getFilteredProducts = () => {
     switch (activeTab) {
@@ -81,6 +86,16 @@ export default function Home() {
       default:
         return colors.primary;
     }
+  };
+
+  const getProgressGradient = (progress: number, status: string) => {
+    const statusColor = getStatusColor(status);
+    return {
+      backgroundColor: colors.border,
+      borderRadius: 4,
+      height: 6,
+      overflow: 'hidden' as const,
+    };
   };
 
   const getStatusText = (daysLeft: number) => {
@@ -109,11 +124,19 @@ export default function Home() {
       </View>
 
       <View style={styles.searchContainer}>
-        <View style={[styles.searchBar, { backgroundColor: colors.surface }]}>
+        <View style={[
+          styles.searchBar, 
+          { backgroundColor: colors.surface },
+          colorScheme === 'light' ? Shadows.light : Shadows.dark
+        ]}>
           <Search size={20} color={colors.primary} />
           <Text style={[styles.searchPlaceholder, { color: colors.textMuted }]}>Search products...</Text>
         </View>
-        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity style={[
+          styles.filterButton, 
+          { backgroundColor: colors.surface },
+          colorScheme === 'light' ? Shadows.light : Shadows.dark
+        ]}>
           <Filter size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
@@ -122,11 +145,22 @@ export default function Home() {
         {tabs.map((tab, index) => (
           <TouchableOpacity
             key={index}
-            style={[styles.tab, activeTab === index && styles.activeTab, 
-              activeTab === index && { backgroundColor: colors.primary }]}>
+            style={[
+              styles.tab, 
+              activeTab === index && [
+                styles.activeTab, 
+                { backgroundColor: colors.primary },
+                colorScheme === 'light' ? Shadows.light : {}
+              ]
+            ]}
+            onPress={() => setActiveTab(index)}
+          >
             <Text style={[
               styles.tabText, 
-              { color: activeTab === index ? colors.surface : colors.textMuted }
+              { color: activeTab === index ? 
+                (colorScheme === 'light' ? colors.surface : colors.background) : 
+                colors.textMuted 
+              }
             ]}>
               {tab}
             </Text>
@@ -136,31 +170,49 @@ export default function Home() {
 
       <ScrollView style={styles.productList} showsVerticalScrollIndicator={false}>
         {getFilteredProducts().map((product) => (
-          <TouchableOpacity key={product.id} style={[styles.productCard, { backgroundColor: colors.surface }]}>
+          <TouchableOpacity 
+            key={product.id} 
+            style={[
+              styles.productCard, 
+              { backgroundColor: colors.surface },
+              colorScheme === 'light' ? Shadows.light : Shadows.dark
+            ]}
+          >
             <Image source={{ uri: product.image }} style={styles.productImage} />
             
             <View style={styles.productInfo}>
-              <Text style={[styles.productName, { color: colors.text }]}>{product.name}</Text>
-              <Text style={[styles.productCategory, { color: colors.textMuted }]}>{product.category}</Text>
-              <Text style={[styles.productStatus, { color: getStatusColor(product.status) }]}>
-                {getStatusText(product.daysLeft)}
-              </Text>
+              <View style={styles.productHeader}>
+                <Text style={[styles.productName, { color: colors.text }]}>{product.name}</Text>
+                <View style={[styles.categoryTag, { backgroundColor: colors.primary + '20' }]}>
+                  <Text style={[styles.categoryText, { color: colors.primary }]}>{product.category}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.progressContainer}>
+                <View style={getProgressGradient(product.progress, product.status)}>
+                  <View 
+                    style={[
+                      styles.progressFill,
+                      { 
+                        backgroundColor: getStatusColor(product.status),
+                        width: `${product.progress * 100}%`
+                      }
+                    ]} 
+                  />
+                </View>
+                <Text style={[styles.progressText, { color: getStatusColor(product.status) }]}>
+                  {getStatusText(product.daysLeft)}
+                </Text>
+              </View>
             </View>
 
-            <View style={styles.statusIndicator}>
-              <View
-                style={[
-                  styles.statusRing,
-                  { borderColor: getStatusColor(product.status) }
-                ]}
-              >
-                <View
-                  style={[
-                    styles.statusDot,
-                    { backgroundColor: getStatusColor(product.status) }
-                  ]}
-                />
-              </View>
+            <View style={styles.actionButtons}>
+              <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.primary + '20' }]}>
+                <Edit size={16} color={colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.primary + '20' }]}>
+                <Eye size={16} color={colors.primary} />
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         ))}
@@ -188,7 +240,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.xl,
   },
@@ -203,6 +255,10 @@ const styles = StyleSheet.create({
   notificationButton: {
     position: 'relative',
     padding: Spacing.sm,
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   notificationBadge: {
     position: 'absolute',
@@ -214,8 +270,8 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.xl,
-    marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   searchBar: {
     flex: 1,
@@ -241,7 +297,7 @@ const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   tab: {
     flex: 1,
@@ -250,13 +306,19 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     marginHorizontal: Spacing.xs,
     alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  activeTab: {
   },
   tabText: {
     ...Typography.body,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 13,
   },
   productList: {
     flex: 1,
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
   },
   productCard: {
     flexDirection: 'row',
@@ -274,33 +336,50 @@ const styles = StyleSheet.create({
   productInfo: {
     flex: 1,
   },
+  productHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
   productName: {
     ...Typography.subtitle,
-    marginBottom: Spacing.xs,
+    flex: 1,
+    marginRight: Spacing.sm,
   },
-  productCategory: {
-    ...Typography.body,
-    marginBottom: Spacing.xs,
+  categoryTag: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
   },
-  productStatus: {
+  categoryText: {
+    ...Typography.label,
+    fontSize: 10,
+  },
+  progressContainer: {
+    marginTop: Spacing.xs,
+  },
+  progressFill: {
+    height: 6,
+    borderRadius: 4,
+  },
+  progressText: {
     ...Typography.body,
+    fontSize: 12,
+    marginTop: Spacing.xs,
     fontFamily: 'Inter-SemiBold',
   },
-  statusIndicator: {
-    marginLeft: Spacing.lg,
+  actionButtons: {
+    flexDirection: 'row',
+    marginLeft: Spacing.md,
   },
-  statusRing: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    marginLeft: Spacing.sm,
   },
   emptyState: {
     alignItems: 'center',

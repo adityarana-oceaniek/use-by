@@ -10,9 +10,9 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react-native';
-import { useThemeColors } from '@/hooks/useColorScheme';
-import { Spacing, Typography, BorderRadius } from '@/constants/Colors';
+import { Mail, Lock, Eye, EyeOff, User, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
+import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -22,17 +22,72 @@ export default function Auth() {
     email: '',
     password: '',
   });
+  const [validationState, setValidationState] = useState({
+    email: null as 'valid' | 'invalid' | null,
+    password: null as 'valid' | 'invalid' | null,
+    name: null as 'valid' | 'invalid' | null,
+  });
   const router = useRouter();
   const colors = useThemeColors();
+  const colorScheme = useColorScheme();
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string) => {
+    return password.length >= 6;
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value });
+    
+    // Real-time validation
+    if (field === 'email' && value.length > 0) {
+      setValidationState(prev => ({ ...prev, email: validateEmail(value) ? 'valid' : 'invalid' }));
+    } else if (field === 'password' && value.length > 0) {
+      setValidationState(prev => ({ ...prev, password: validatePassword(value) ? 'valid' : 'invalid' }));
+    } else if (field === 'name' && value.length > 0) {
+      setValidationState(prev => ({ ...prev, name: value.length >= 2 ? 'valid' : 'invalid' }));
+    }
+  };
 
   const handleSubmit = () => {
-    // In production, handle authentication here
-    router.replace('/(tabs)');
+    // Validate all fields
+    const emailValid = validateEmail(formData.email);
+    const passwordValid = validatePassword(formData.password);
+    const nameValid = !isLogin ? formData.name.length >= 2 : true;
+
+    if (emailValid && passwordValid && nameValid) {
+      router.replace('/(tabs)');
+    } else {
+      setValidationState({
+        email: emailValid ? 'valid' : 'invalid',
+        password: passwordValid ? 'valid' : 'invalid',
+        name: nameValid ? 'valid' : 'invalid',
+      });
+    }
   };
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
     setFormData({ name: '', email: '', password: '' });
+    setValidationState({ email: null, password: null, name: null });
+  };
+
+  const getInputBorderColor = (field: 'email' | 'password' | 'name') => {
+    const state = validationState[field];
+    if (state === 'valid') return colors.success;
+    if (state === 'invalid') return colors.error;
+    return colors.border;
+  };
+
+  const getValidationIcon = (field: 'email' | 'password' | 'name') => {
+    const state = validationState[field];
+    if (state === 'valid') return <CheckCircle size={20} color={colors.success} />;
+    if (state === 'invalid') return <AlertCircle size={20} color={colors.error} />;
+    return null;
   };
 
   return (
@@ -46,7 +101,7 @@ export default function Auth() {
           <Text style={[styles.tagline, { color: colors.textMuted }]}>Smart expiry tracking for your household</Text>
         </View>
 
-        <View style={styles.formContainer}>
+        <View style={[styles.formCard, { backgroundColor: colors.surface }, colorScheme === 'light' ? Shadows.light : Shadows.dark]}>
           <Text style={[styles.title, { color: colors.text }]}>
             {isLogin ? 'Welcome back' : 'Create account'}
           </Text>
@@ -56,44 +111,58 @@ export default function Auth() {
 
           {!isLogin && (
             <View style={styles.inputContainer}>
-              <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>Full Name</Text>
+              <View style={[
+                styles.inputWrapper, 
+                { backgroundColor: colors.background, borderColor: getInputBorderColor('name') }
+              ]}>
                 <User size={20} color={colors.primary} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: colors.text }]}
-                  placeholder="Full name"
+                  placeholder="Enter your full name"
                   placeholderTextColor={colors.textMuted}
                   value={formData.name}
-                  onChangeText={(text) => setFormData({ ...formData, name: text })}
+                  onChangeText={(text) => handleInputChange('name', text)}
                 />
+                {getValidationIcon('name')}
               </View>
             </View>
           )}
 
           <View style={styles.inputContainer}>
-            <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>Email Address</Text>
+            <View style={[
+              styles.inputWrapper, 
+              { backgroundColor: colors.background, borderColor: getInputBorderColor('email') }
+            ]}>
               <Mail size={20} color={colors.primary} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, { color: colors.text }]}
-                placeholder="Email address"
+                placeholder="Enter your email"
                 placeholderTextColor={colors.textMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={formData.email}
-                onChangeText={(text) => setFormData({ ...formData, email: text })}
+                onChangeText={(text) => handleInputChange('email', text)}
               />
+              {getValidationIcon('email')}
             </View>
           </View>
 
           <View style={styles.inputContainer}>
-            <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>Password</Text>
+            <View style={[
+              styles.inputWrapper, 
+              { backgroundColor: colors.background, borderColor: getInputBorderColor('password') }
+            ]}>
               <Lock size={20} color={colors.primary} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, { color: colors.text }]}
-                placeholder="Password"
+                placeholder="Enter your password"
                 placeholderTextColor={colors.textMuted}
                 secureTextEntry={!showPassword}
                 value={formData.password}
-                onChangeText={(text) => setFormData({ ...formData, password: text })}
+                onChangeText={(text) => handleInputChange('password', text)}
               />
               <TouchableOpacity
                 style={styles.eyeIcon}
@@ -114,8 +183,15 @@ export default function Auth() {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={[styles.submitButton, { backgroundColor: colors.primary }]} onPress={handleSubmit}>
-            <Text style={[styles.submitButtonText, { color: colors.surface }]}>
+          <TouchableOpacity 
+            style={[
+              styles.submitButton, 
+              { backgroundColor: colors.primary },
+              colorScheme === 'light' ? Shadows.light : {}
+            ]} 
+            onPress={handleSubmit}
+          >
+            <Text style={[styles.submitButtonText, { color: colorScheme === 'light' ? colors.surface : colors.background }]}>
               {isLogin ? 'Sign In' : 'Create Account'}
             </Text>
           </TouchableOpacity>
@@ -126,11 +202,19 @@ export default function Auth() {
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
 
-          <TouchableOpacity style={[styles.socialButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <TouchableOpacity style={[
+            styles.socialButton, 
+            { backgroundColor: colors.background, borderColor: colors.border },
+            colorScheme === 'light' ? Shadows.light : Shadows.dark
+          ]}>
             <Text style={[styles.socialButtonText, { color: colors.text }]}>Continue with Google</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.socialButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <TouchableOpacity style={[
+            styles.socialButton, 
+            { backgroundColor: colors.background, borderColor: colors.border },
+            colorScheme === 'light' ? Shadows.light : Shadows.dark
+          ]}>
             <Text style={[styles.socialButtonText, { color: colors.text }]}>Continue with Apple</Text>
           </TouchableOpacity>
 
@@ -156,11 +240,11 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: Spacing.xxl,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: 60,
   },
   header: {
     alignItems: 'center',
-    paddingTop: 80,
     paddingBottom: 40,
   },
   logo: {
@@ -173,8 +257,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
-  formContainer: {
-    flex: 1,
+  formCard: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    marginBottom: Spacing.xl,
   },
   title: {
     ...Typography.title,
@@ -189,13 +275,18 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginBottom: Spacing.lg,
   },
+  inputLabel: {
+    ...Typography.body,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: Spacing.sm,
+  },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.lg,
     height: 56,
-    borderWidth: 1,
+    borderWidth: 2,
   },
   inputIcon: {
     marginRight: Spacing.md,
@@ -211,9 +302,12 @@ const styles = StyleSheet.create({
   forgotPassword: {
     alignSelf: 'flex-end',
     marginBottom: Spacing.xl,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   forgotPasswordText: {
     ...Typography.body,
+    fontFamily: 'Inter-SemiBold',
   },
   submitButton: {
     borderRadius: BorderRadius.md,
@@ -224,6 +318,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     ...Typography.subtitle,
+    fontSize: 16,
   },
   divider: {
     flexDirection: 'row',
@@ -253,8 +348,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Spacing.xl,
-    paddingBottom: 32,
+    marginTop: Spacing.lg,
+    minHeight: 44,
   },
   switchAuthText: {
     ...Typography.body,

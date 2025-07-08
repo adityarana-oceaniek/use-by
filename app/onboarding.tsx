@@ -6,11 +6,12 @@ import {
   Dimensions,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Clock, Shield, ShoppingCart, ArrowRight, ArrowLeft, Bell } from 'lucide-react-native';
-import { useThemeColors } from '@/hooks/useColorScheme';
-import { Spacing, Typography, BorderRadius } from '@/constants/Colors';
+import { Clock, Shield, Bell, ArrowRight, ArrowLeft } from 'lucide-react-native';
+import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
+import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +22,7 @@ const onboardingData = [
     subtitle: 'before you lose it',
     description: 'Monitor expiry dates for cosmetics, medicines, cleaning products, batteries and more. Get smart reminders before items expire.',
     icon: Clock,
+    image: 'https://images.pexels.com/photos/3683074/pexels-photo-3683074.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 2,
@@ -28,6 +30,7 @@ const onboardingData = [
     subtitle: 'Cosmetics, meds, batteries & more',
     description: 'Organize your household items by type. Track skincare routines, medicine schedules, and battery replacements all in one place.',
     icon: Shield,
+    image: 'https://images.pexels.com/photos/3685530/pexels-photo-3685530.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     id: 3,
@@ -35,6 +38,7 @@ const onboardingData = [
     subtitle: 'Never miss important reminders',
     description: 'Get timely notifications for expiring items, medicine doses, and reorder suggestions. Stay on top of your household needs.',
     icon: Bell,
+    image: 'https://images.pexels.com/photos/4239091/pexels-photo-4239091.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 ];
 
@@ -43,6 +47,7 @@ export default function Onboarding() {
   const scrollViewRef = useRef<ScrollView>(null);
   const router = useRouter();
   const colors = useThemeColors();
+  const colorScheme = useColorScheme();
 
   const handleNext = () => {
     if (currentIndex < onboardingData.length - 1) {
@@ -81,9 +86,10 @@ export default function Onboarding() {
       >
         {onboardingData.map((item, index) => (
           <View key={item.id} style={styles.slide}>
-            <View style={styles.iconContainer}>
-              <View style={[styles.iconBackground, { backgroundColor: colors.primary + '20' }]}>
-                <item.icon size={64} color={colors.primary} strokeWidth={1.5} />
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: item.image }} style={styles.heroImage} />
+              <View style={[styles.iconOverlay, { backgroundColor: colors.primary + '20' }]}>
+                <item.icon size={48} color={colors.primary} strokeWidth={1.5} />
               </View>
             </View>
             
@@ -113,17 +119,24 @@ export default function Onboarding() {
 
         <View style={styles.buttonContainer}>
           {currentIndex > 0 && (
-            <TouchableOpacity style={[styles.backButton]} onPress={handlePrevious}>
+            <TouchableOpacity style={styles.backButton} onPress={handlePrevious}>
               <ArrowLeft size={20} color={colors.primary} />
               <Text style={[styles.backButtonText, { color: colors.primary }]}>Back</Text>
             </TouchableOpacity>
           )}
           
-          <TouchableOpacity style={[styles.nextButton, { backgroundColor: colors.primary }]} onPress={handleNext}>
-            <Text style={[styles.nextButtonText, { color: colors.surface }]}>
+          <TouchableOpacity 
+            style={[
+              styles.nextButton, 
+              { backgroundColor: colors.primary },
+              colorScheme === 'light' ? Shadows.light : Shadows.dark
+            ]} 
+            onPress={handleNext}
+          >
+            <Text style={[styles.nextButtonText, { color: colorScheme === 'light' ? colors.surface : colors.background }]}>
               {currentIndex === onboardingData.length - 1 ? 'Get Started' : 'Next'}
             </Text>
-            <ArrowRight size={20} color={colors.surface} />
+            <ArrowRight size={20} color={colorScheme === 'light' ? colors.surface : colors.background} />
           </TouchableOpacity>
         </View>
       </View>
@@ -142,25 +155,37 @@ const styles = StyleSheet.create({
     width,
     flex: 1,
     paddingHorizontal: Spacing.xxl,
-    paddingTop: 80,
+    paddingTop: 60,
     alignItems: 'center',
   },
-  iconContainer: {
-    flex: 0.4,
+  imageContainer: {
+    flex: 0.5,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+    width: '100%',
   },
-  iconBackground: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  heroImage: {
+    width: 280,
+    height: 280,
+    borderRadius: BorderRadius.xl,
+    opacity: 0.8,
+  },
+  iconOverlay: {
+    position: 'absolute',
+    bottom: -20,
+    right: 20,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
   textContainer: {
-    flex: 0.6,
+    flex: 0.5,
     alignItems: 'center',
     paddingTop: 40,
+    paddingHorizontal: Spacing.lg,
   },
   title: {
     ...Typography.title,
@@ -200,18 +225,18 @@ const styles = StyleSheet.create({
   activeDot: {
     width: 24,
   },
-  inactiveDot: {
-  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    minHeight: 56,
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.xl,
+    minHeight: 44,
   },
   backButtonText: {
     ...Typography.subtitle,
@@ -226,6 +251,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: Spacing.lg,
     justifyContent: 'center',
+    minHeight: 56,
   },
   nextButtonText: {
     ...Typography.subtitle,
