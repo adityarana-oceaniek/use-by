@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import { Bell, Clock, Pill, ShoppingBag, AlertTriangle, X, Snooze } from 'lucide-react-native';
+import { Bell, Clock, Pill, ShoppingBag, TriangleAlert as AlertTriangle, X, SunSnow as Snooze } from 'lucide-react-native';
 import { useThemeColors, useColorScheme } from '@/hooks/useColorScheme';
 import { Spacing, Typography, BorderRadius, Shadows } from '@/constants/Colors';
 
